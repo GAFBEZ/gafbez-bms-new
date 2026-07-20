@@ -1,26 +1,57 @@
 @import "tailwindcss";
 
+/* Enables class-based dark mode (`<html class="dark">`) instead of
+   Tailwind's v4 default of following prefers-color-scheme unconditionally
+   -- needed so the Settings theme toggle can override the OS preference.
+   See src/lib/theme.ts and the inline script in src/app/layout.tsx. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f6f3ee;
+  --foreground: #17241d;
+
+  /* Brand palette: dark green primary, white surfaces, warm off-white page
+     background, gold reserved for small accents only. */
+  --color-brand-green: #0b3d2e;
+  --color-brand-green-dark: #062a1f;
+  --color-brand-green-soft: #e6efe9;
+  --color-brand-gold: #c9971f;
+  --color-brand-gold-soft: #faf1dc;
+  --color-page: #f6f3ee;
+  --color-card: #ffffff;
+}
+
+.dark {
+  --background: #0f1613;
+  --foreground: #e8ece9;
+
+  /* bg-brand-green/bg-brand-gold (solid fills: buttons, sidebar, header)
+     deliberately keep their light-mode values in dark mode too -- they're
+     already a saturated color fill with white text, not a neutral surface,
+     so they don't need a dark variant. Only the *soft* tint tokens (used as
+     pale badge/icon-circle backgrounds meant to sit on a neutral surface)
+     and the neutral surface tokens get dark overrides. */
+  --color-brand-green-soft: #173226;
+  --color-brand-gold-soft: #3a2e12;
+  --color-page: #0f1613;
+  --color-card: #111827;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-brand-green: var(--color-brand-green);
+  --color-brand-green-dark: var(--color-brand-green-dark);
+  --color-brand-green-soft: var(--color-brand-green-soft);
+  --color-brand-gold: var(--color-brand-gold);
+  --color-brand-gold-soft: var(--color-brand-gold-soft);
+  --color-page: var(--color-page);
+  --color-card: var(--color-card);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
