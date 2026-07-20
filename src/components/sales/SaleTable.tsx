@@ -96,7 +96,55 @@ export function SaleTable({ sales }: SaleTableProps) {
       {filtered.length === 0 ? (
         <EmptyState title="No matching sales" description="Try a different status filter." />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+        <>
+          <ul className="flex flex-col gap-3 sm:hidden">
+            {filtered.map((sale) => (
+              <li
+                key={sale.id}
+                className="rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-gray-900 dark:text-gray-100">
+                      {sale.customerName ?? "Walk-in customer"}
+                    </p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">
+                      {sale.branchName} · {sale.itemCount} item{sale.itemCount === 1 ? "" : "s"}
+                    </p>
+                  </div>
+                  <Link
+                    href={`/dashboard/daily-sales/${sale.id}`}
+                    aria-label={`View sale for ${sale.customerName ?? "walk-in customer"}`}
+                    className="shrink-0 rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-green/30 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+                  >
+                    <Eye className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 dark:border-gray-800 pt-3 text-sm">
+                  <div>
+                    <p className="font-medium text-gray-700 dark:text-gray-300">
+                      {formatCurrency(sale.totalAmount)}
+                      <span
+                        className={`ml-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${statusStyles[sale.status]}`}
+                      >
+                        {statusLabels[sale.status]}
+                      </span>
+                    </p>
+                    <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+                      Paid {formatCurrency(sale.amountPaid)}
+                    </p>
+                  </div>
+                  <div className="text-right text-xs text-gray-400 dark:text-gray-500">
+                    <DateTimeCell value={sale.createdAt} />
+                    {sale.recordedBy && <p className="mt-0.5">{sale.recordedBy}</p>}
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm sm:block">
           <table className="w-full min-w-[960px] text-left text-sm">
             <thead>
               <tr className="border-b border-gray-100 dark:border-gray-800 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -169,7 +217,8 @@ export function SaleTable({ sales }: SaleTableProps) {
               ))}
             </tbody>
           </table>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

@@ -95,7 +95,74 @@ export function CustomerTable({ customers, branches, canDelete }: CustomerTableP
           description="Try a different search term."
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+        <>
+          <ul className="flex flex-col gap-3 sm:hidden">
+            {filtered.map((customer) => {
+              const hasBalance = customer.outstandingBalance > 0;
+              return (
+                <li
+                  key={customer.id}
+                  className="rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-gray-900 dark:text-gray-100">
+                        {customer.name}
+                      </p>
+                      {customer.address && (
+                        <p className="truncate text-xs text-gray-400 dark:text-gray-500">
+                          {customer.address}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Link
+                        href={`/dashboard/customers/${customer.id}`}
+                        aria-label={`View ${customer.name}`}
+                        className="rounded-md p-1.5 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-green/30"
+                      >
+                        <Eye className="h-4 w-4" aria-hidden="true" />
+                      </Link>
+                      <Link
+                        href={`/dashboard/customers/${customer.id}/edit`}
+                        aria-label={`Edit ${customer.name}`}
+                        className="rounded-md p-1.5 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-green/30"
+                      >
+                        <Pencil className="h-4 w-4" aria-hidden="true" />
+                      </Link>
+                      {canDelete && (
+                        <DeleteCustomerButton id={customer.id} customerName={customer.name} />
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 dark:border-gray-800 pt-3 text-sm">
+                    <div className="text-gray-600 dark:text-gray-400">
+                      {customer.phone && <p>{customer.phone}</p>}
+                      {customer.email && (
+                        <p className="text-xs text-gray-400 dark:text-gray-500">{customer.email}</p>
+                      )}
+                      {!customer.phone && !customer.email && "—"}
+                      <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+                        {customer.branchId ? (branchNameById.get(customer.branchId) ?? "—") : "—"}
+                      </p>
+                    </div>
+                    <span
+                      className={
+                        hasBalance
+                          ? "rounded-full bg-red-50 dark:bg-red-950/40 px-2.5 py-0.5 text-xs font-medium text-red-600 dark:text-red-400"
+                          : "text-gray-600 dark:text-gray-400"
+                      }
+                    >
+                      {formatCurrency(customer.outstandingBalance)}
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm sm:block">
           <table className="w-full min-w-[760px] text-left text-sm">
             <thead>
               <tr className="border-b border-gray-100 dark:border-gray-800 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -176,7 +243,8 @@ export function CustomerTable({ customers, branches, canDelete }: CustomerTableP
               })}
             </tbody>
           </table>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

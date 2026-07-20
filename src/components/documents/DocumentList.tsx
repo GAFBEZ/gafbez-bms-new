@@ -86,7 +86,43 @@ export function DocumentList({ documents, canDelete }: DocumentListProps) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+    <>
+      <ul className="flex flex-col gap-3 sm:hidden">
+        {documents.map((doc) => (
+          <li
+            key={doc.id}
+            className="rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex min-w-0 items-start gap-2.5">
+                <FileText
+                  className="mt-0.5 h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500"
+                  aria-hidden="true"
+                />
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-gray-900 dark:text-gray-100">{doc.name}</p>
+                  {doc.category && (
+                    <p className="truncate text-xs text-gray-400 dark:text-gray-500">{doc.category}</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-1">
+                <DownloadButton storagePath={doc.storagePath} name={doc.name} />
+                {canDelete && <DeleteButton id={doc.id} storagePath={doc.storagePath} name={doc.name} />}
+              </div>
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 dark:border-gray-800 pt-3 text-sm text-gray-600 dark:text-gray-400">
+              <span>{doc.branchName ?? "General"} · {formatFileSize(doc.sizeBytes)}</span>
+              <div className="text-right text-xs text-gray-400 dark:text-gray-500">
+                <DateTimeCell value={doc.createdAt} />
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <div className="hidden overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm sm:block">
       <table className="w-full min-w-[720px] text-left text-sm">
         <thead>
           <tr className="border-b border-gray-100 dark:border-gray-800 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -141,6 +177,7 @@ export function DocumentList({ documents, canDelete }: DocumentListProps) {
           ))}
         </tbody>
       </table>
-    </div>
+      </div>
+    </>
   );
 }

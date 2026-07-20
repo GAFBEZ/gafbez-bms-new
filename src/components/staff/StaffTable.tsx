@@ -47,7 +47,42 @@ export function StaffTable({ staff, currentUserId }: StaffTableProps) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+    <>
+      <ul className="flex flex-col gap-3 sm:hidden">
+        {staff.map((member) => (
+          <li
+            key={member.id}
+            className="rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="truncate font-medium text-gray-900 dark:text-gray-100">
+                  {member.fullName || "Unnamed staff member"}
+                  {member.id === currentUserId && (
+                    <span className="ml-2 text-xs font-normal text-gray-400 dark:text-gray-500">(You)</span>
+                  )}
+                </p>
+                <p className="truncate text-xs text-gray-400 dark:text-gray-500">{member.email ?? "—"}</p>
+              </div>
+              <Link
+                href={`/dashboard/staff-management/${member.id}/edit`}
+                aria-label={`Edit ${member.fullName || member.email || "staff member"}`}
+                className="shrink-0 rounded-md p-1.5 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-green/30"
+              >
+                <Pencil className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-gray-100 dark:border-gray-800 pt-3 text-sm">
+              <span className="text-gray-600 dark:text-gray-400">{member.branchName ?? "No branch"}</span>
+              <RoleBadge role={member.role} />
+              <StatusBadge isActive={member.isActive} />
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <div className="hidden overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm sm:block">
       <table className="w-full min-w-[720px] text-left text-sm">
         <thead>
           <tr className="border-b border-gray-100 dark:border-gray-800 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -100,6 +135,7 @@ export function StaffTable({ staff, currentUserId }: StaffTableProps) {
           ))}
         </tbody>
       </table>
-    </div>
+      </div>
+    </>
   );
 }

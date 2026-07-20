@@ -88,7 +88,106 @@ export function ProductTable({ products, canDelete }: ProductTableProps) {
           description="Try a different search term or category."
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+        <>
+          <ul className="flex flex-col gap-3 sm:hidden">
+            {filtered.map((product) => {
+              const isLowStock = product.quantityInStock <= product.reorderLevel;
+              const marginAmount = product.sellingPrice - product.costPrice;
+              const marginPercent =
+                product.sellingPrice > 0 ? (marginAmount / product.sellingPrice) * 100 : null;
+              return (
+                <li
+                  key={product.id}
+                  className="rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-gray-900 dark:text-gray-100">
+                        {product.name}
+                      </p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500">
+                        {product.sku} · {product.category}
+                      </p>
+                    </div>
+                    <span
+                      className={
+                        product.isActive
+                          ? "shrink-0 rounded-full bg-brand-green-soft px-2.5 py-0.5 text-xs font-medium text-brand-green dark:text-emerald-400"
+                          : "shrink-0 rounded-full bg-gray-100 dark:bg-gray-800 px-2.5 py-0.5 text-xs font-medium text-gray-500 dark:text-gray-400"
+                      }
+                    >
+                      {product.isActive ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+
+                  <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2.5 text-sm">
+                    <div>
+                      <dt className="text-xs text-gray-400 dark:text-gray-500">Cost Price</dt>
+                      <dd className="text-gray-700 dark:text-gray-300">
+                        {formatCurrency(product.costPrice)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-gray-400 dark:text-gray-500">Selling Price</dt>
+                      <dd className="text-gray-700 dark:text-gray-300">
+                        {formatCurrency(product.sellingPrice)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-gray-400 dark:text-gray-500">Profit Margin</dt>
+                      <dd
+                        className={
+                          marginPercent !== null && marginPercent < 0
+                            ? "font-medium text-red-600 dark:text-red-400"
+                            : "text-gray-700 dark:text-gray-300"
+                        }
+                      >
+                        {marginPercent !== null
+                          ? `${formatCurrency(marginAmount)} (${marginPercent.toFixed(0)}%)`
+                          : "—"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-gray-400 dark:text-gray-500">Stock</dt>
+                      <dd
+                        className={
+                          isLowStock
+                            ? "font-medium text-red-600 dark:text-red-400"
+                            : "text-gray-700 dark:text-gray-300"
+                        }
+                      >
+                        {product.quantityInStock} {product.unit}
+                        {isLowStock ? " · Low" : ""}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-gray-400 dark:text-gray-500">Reorder Level</dt>
+                      <dd className="text-gray-700 dark:text-gray-300">
+                        {product.reorderLevel} {product.unit}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-gray-400 dark:text-gray-500">Supplier</dt>
+                      <dd className="text-gray-700 dark:text-gray-300">{product.supplier ?? "—"}</dd>
+                    </div>
+                  </dl>
+
+                  <div className="mt-3 flex items-center gap-1 border-t border-gray-100 dark:border-gray-800 pt-3">
+                    <Link
+                      href={`/dashboard/inventory/${product.id}/edit`}
+                      aria-label={`Edit ${product.name}`}
+                      className="rounded-md p-1.5 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-green/30"
+                    >
+                      <Pencil className="h-4 w-4" aria-hidden="true" />
+                    </Link>
+                    {canDelete && <DeleteProductButton id={product.id} productName={product.name} />}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm sm:block">
           <table className="w-full min-w-[1180px] text-left text-sm">
             <thead>
               <tr className="border-b border-gray-100 dark:border-gray-800 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -209,7 +308,8 @@ export function ProductTable({ products, canDelete }: ProductTableProps) {
               })}
             </tbody>
           </table>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

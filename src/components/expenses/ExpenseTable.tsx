@@ -93,7 +93,53 @@ export function ExpenseTable({ expenses, canDelete }: ExpenseTableProps) {
       {filtered.length === 0 ? (
         <EmptyState title="No matching expenses" description="Try a different category filter." />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+        <>
+          <ul className="flex flex-col gap-3 sm:hidden">
+            {filtered.map((expense) => (
+              <li
+                key={expense.id}
+                className="rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-gray-900 dark:text-gray-100">
+                      {expense.category}
+                    </p>
+                    {expense.description && (
+                      <p className="truncate text-xs text-gray-400 dark:text-gray-500">
+                        {expense.description}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <Link
+                      href={`/dashboard/expenses/${expense.id}/edit`}
+                      aria-label={`Edit expense: ${expense.category}`}
+                      className="rounded-md p-1.5 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-green/30"
+                    >
+                      <Pencil className="h-4 w-4" aria-hidden="true" />
+                    </Link>
+                    {canDelete && <DeleteExpenseButton id={expense.id} label={expense.category} />}
+                  </div>
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 dark:border-gray-800 pt-3 text-sm">
+                  <div>
+                    <p className="font-medium text-gray-700 dark:text-gray-300">
+                      {formatCurrency(expense.amount)}
+                    </p>
+                    <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{expense.branchName}</p>
+                  </div>
+                  <div className="text-right text-xs text-gray-400 dark:text-gray-500">
+                    <p>{formatDate(`${expense.expenseDate}T00:00:00`)}</p>
+                    {expense.recordedBy && <p className="mt-0.5">{expense.recordedBy}</p>}
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm sm:block">
           <table className="w-full min-w-[860px] text-left text-sm">
             <thead>
               <tr className="border-b border-gray-100 dark:border-gray-800 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -154,7 +200,8 @@ export function ExpenseTable({ expenses, canDelete }: ExpenseTableProps) {
               ))}
             </tbody>
           </table>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

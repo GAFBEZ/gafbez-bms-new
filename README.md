@@ -1212,6 +1212,23 @@ npm run start
   controls throughout.
 - Fully responsive layout for mobile, tablet, and desktop.
 
+**Mobile card layout for data tables:** every list backed by a `<table>`
+(Inventory Master, Staff Management, Customers, Daily Sales, Expenses,
+Stock Movement, Documents — 7 components) now renders two ways: a `<ul>`
+of stacked cards below the `sm` breakpoint (`sm:hidden`), and the
+original `<table>` from `sm:` up (`hidden sm:block`), both driven by the
+same filtered data array so there's no duplicated logic beyond the
+markup itself. Before this, every one of these tables relied on
+horizontal scroll (`overflow-x-auto` plus a `min-w-[...]` on the
+`<table>`) to stay usable on a narrow screen — technically scrollable,
+but on a real phone it just looked cut off at the viewport edge with no
+visible affordance to swipe, hiding price/stock/actions columns
+entirely. Each mobile card shows the same fields as its table row, just
+stacked (primary identifier + actions up top, a divider, then secondary
+fields below) instead of laid out in columns. `DashboardCard`-based
+summary rows (KPI cards) didn't need this — they already used a
+`grid-cols-2` layout that fits a phone width on its own.
+
 ## Dashboard Color Palette
 
 The 8 metric-card accent colors (`src/lib/palette.ts`) aren't hand-picked —
