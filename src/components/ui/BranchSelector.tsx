@@ -32,7 +32,7 @@ export function BranchSelector({ branches, activeBranchId }: BranchSelectorProps
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex min-w-0 items-center gap-2">
       <label htmlFor={selectId} className="sr-only">
         Branch
       </label>
@@ -45,7 +45,7 @@ export function BranchSelector({ branches, activeBranchId }: BranchSelectorProps
         value={selected}
         onChange={handleChange}
         disabled={isPending}
-        className="cursor-pointer rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 py-2 pl-3 pr-8 text-sm font-medium text-gray-700 dark:text-gray-300 focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30 disabled:opacity-60"
+        className="w-full max-w-[110px] cursor-pointer truncate rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 py-2 pl-3 pr-8 text-sm font-medium text-gray-700 dark:text-gray-300 focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30 disabled:opacity-60 sm:max-w-[160px] md:max-w-none"
       >
         {branches.map((branch) => (
           <option

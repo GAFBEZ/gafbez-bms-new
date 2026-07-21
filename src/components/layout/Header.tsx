@@ -35,7 +35,7 @@ export function Header({
   const displayName = user?.fullName || user?.email || "Signed in";
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-16 min-w-0 shrink-0 items-center gap-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 sm:px-6">
       <button
         type="button"
         onClick={onMenuClick}
@@ -49,8 +49,8 @@ export function Header({
         <BranchSelector branches={branches} activeBranchId={activeBranchId} />
       </div>
 
-      <div className="ml-auto flex items-center gap-2 sm:gap-4">
-        <div className="md:hidden">
+      <div className="ml-auto flex min-w-0 items-center gap-2 sm:gap-4">
+        <div className="min-w-0 md:hidden">
           <BranchSelector branches={branches} activeBranchId={activeBranchId} />
         </div>
 
