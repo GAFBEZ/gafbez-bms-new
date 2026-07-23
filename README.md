@@ -930,10 +930,11 @@ npm run start
   Sales Catalogue, Daily Sales, Sales Tracker, Customers, Expenses,
   Documents, Notifications, Staff Management, Installation, and Settings —
   every one a real module, no remaining placeholders.
-  Staff Management **and Inventory Master** are hidden from the sidebar
-  entirely for non-admin users (`src/lib/navigation.ts`'s `adminOnly`
-  flag, filtered in `NavList`) — see "Role-Based Visibility (Cost &
-  Profit)" above for why Inventory Master joined Staff Management here.
+  Staff Management, Inventory Master, **and Installation** are hidden
+  from the sidebar entirely for non-admin users (`src/lib/navigation.ts`'s
+  `adminOnly` flag, filtered in `NavList`) — see "Role-Based Visibility
+  (Cost & Profit)" above for why Inventory Master joined Staff Management
+  here, and the Installation bullet below for why it joined too.
 - **Light/dark theme** across the entire app (every page, table, form,
   badge, and the login screen), switchable from Settings, with no flash
   on load — see "Settings & Dark Mode" above.
@@ -1173,10 +1174,11 @@ npm run start
   - Edit page: name, branch, role, and an active/inactive toggle.
   - Deactivating blocks sign-in; an admin can't demote or deactivate their
     own account.
-- **Installation** (`/dashboard/installations`): tracks profit per solar
-  installation job — what the customer was charged vs. what the inverter,
-  panels, battery, cable, accessories, and labor actually cost, backed by
-  the live `installations` table (`0025_installations.sql`).
+- **Installation** (`/dashboard/installations`, **admin-only**): tracks
+  profit per solar installation job — what the customer was charged vs.
+  what the inverter, panels, battery, cable, accessories, and labor
+  actually cost, backed by the live `installations` table
+  (`0025_installations.sql`).
   - Four summary cards — Total Amount Charged, Total Amount Used, Total
     Profit, and Profit Margin (%) — scoped to the header's branch filter,
     same convention as Inventory Master/Sales Tracker/Customer Detail.
@@ -1199,10 +1201,16 @@ npm run start
     the price/qty/amount fields), not computed in the app, so the numbers
     can't drift from what's actually stored.
   - Plain CRUD like Expenses (not append-only) — a data-entry mistake can
-    be corrected in place. Delete is admin-only; create/edit stays open to
-    any signed-in staff member.
-  - Visible to all staff in the sidebar (not admin-only), positioned right
-    after Staff Management.
+    be corrected in place.
+  - **Admin-only** (`0027_installations_admin_only.sql`), same as
+    Inventory Master and Staff Management: hidden from the sidebar for
+    non-admins (`adminOnly` flag in `src/lib/navigation.ts`), every route
+    (list, add, edit) shows an "Admins only" message for a non-admin who
+    hits the URL directly, and read/insert/update are restricted to
+    `public.is_admin()` at the RLS level too — not just a UI-side check,
+    since a non-admin's own valid session could otherwise still read/write
+    the table directly. (Started open to all staff like Expenses; revised
+    to admin-only shortly after launch — see git history.)
 - **Settings** (`/dashboard/settings`): personal preferences plus
   system-wide defaults — see "Settings & Dark Mode", "Business Profile",
   "Logo Upload", and "Branch Management" above.

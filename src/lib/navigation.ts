@@ -40,6 +40,11 @@ export const navItems: NavItem[] = [
     icon: UserCog,
     adminOnly: true,
   },
-  { label: "Installation", href: "/dashboard/installations", icon: Wrench },
+  {
+    label: "Installation",
+    href: "/dashboard/installations",
+    icon: Wrench,
+    adminOnly: true,
+  },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];

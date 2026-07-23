@@ -2,6 +2,7 @@ import { Plus, ReceiptText, Wallet, TrendingUp, Percent } from "lucide-react";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { InstallationTable } from "@/components/installations/InstallationTable";
 import { getInstallations, getInstallationSummary } from "@/lib/installations";
 import { getBranches } from "@/lib/branches";
@@ -11,15 +12,30 @@ import { formatCurrency } from "@/lib/format";
 import { DASHBOARD_PALETTE } from "@/lib/palette";
 
 export default async function InstallationsPage() {
+  const user = await getCurrentUser();
+
+  if (user?.role !== "admin") {
+    return (
+      <div className="flex flex-col gap-6">
+        <PageHeader
+          title="Installation"
+          description="Track what customers were charged for installations vs. what the parts and labor cost."
+        />
+        <EmptyState
+          title="Admins only"
+          description="Installation (including cost and profit per job) is restricted to admin accounts."
+        />
+      </div>
+    );
+  }
+
   const activeBranchId = await getActiveBranchId();
-  const [installations, summary, branches, user] = await Promise.all([
+  const [installations, summary, branches] = await Promise.all([
     getInstallations(activeBranchId),
     getInstallationSummary(activeBranchId),
     getBranches(),
-    getCurrentUser(),
   ]);
   const activeBranchName = branches.find((b) => b.id === activeBranchId)?.name;
-  const isAdmin = user?.role === "admin";
 
   return (
     <div className="flex flex-col gap-6">
@@ -72,7 +88,7 @@ export default async function InstallationsPage() {
         />
       </div>
 
-      <InstallationTable installations={installations} canDelete={isAdmin} />
+      <InstallationTable installations={installations} canDelete />
     </div>
   );
 }
