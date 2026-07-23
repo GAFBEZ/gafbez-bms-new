@@ -219,6 +219,41 @@ export interface Expense {
   recordedBy: string | null;
 }
 
+export interface Installation {
+  id: string;
+  branchId: string;
+  branchName: string;
+  installationDate: string;
+  totalCharged: number;
+  inverterProductId: string | null;
+  inverterProductName: string | null;
+  inverterPrice: number;
+  inverterQty: number;
+  solarPanelProductId: string | null;
+  solarPanelProductName: string | null;
+  solarPanelPrice: number;
+  solarPanelQty: number;
+  batteryProductId: string | null;
+  batteryProductName: string | null;
+  batteryPrice: number;
+  batteryQty: number;
+  cableAmount: number;
+  accessoriesAmount: number;
+  installationAmount: number;
+  costTotal: number;
+  profit: number;
+  createdAt: string;
+  recordedBy: string | null;
+}
+
+export interface InstallationSummary {
+  count: number;
+  totalCharged: number;
+  totalCost: number;
+  totalProfit: number;
+  profitMarginPct: number;
+}
+
 export interface Notification {
   id: string;
   type: NotificationType;

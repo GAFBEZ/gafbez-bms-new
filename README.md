@@ -926,10 +926,10 @@ npm run start
   via cookie, scopes Customers, Stock Movement, Daily Sales, Expenses, and
   Documents — see "Global branch filter" above), and a working logout
   button.
-- Sidebar navigation covering all 12 planned modules: Dashboard, Inventory
-  Master, Stock Movement, Sales Catalogue, Daily Sales, Sales Tracker,
-  Customers, Expenses, Documents, Notifications, Staff Management, and
-  Settings — every one now a real module, no remaining placeholders.
+- Sidebar navigation covering Dashboard, Inventory Master, Stock Movement,
+  Sales Catalogue, Daily Sales, Sales Tracker, Customers, Expenses,
+  Documents, Notifications, Staff Management, Installation, and Settings —
+  every one a real module, no remaining placeholders.
   Staff Management **and Inventory Master** are hidden from the sidebar
   entirely for non-admin users (`src/lib/navigation.ts`'s `adminOnly`
   flag, filtered in `NavList`) — see "Role-Based Visibility (Cost &
@@ -1173,6 +1173,32 @@ npm run start
   - Edit page: name, branch, role, and an active/inactive toggle.
   - Deactivating blocks sign-in; an admin can't demote or deactivate their
     own account.
+- **Installation** (`/dashboard/installations`): tracks profit per solar
+  installation job — what the customer was charged vs. what the inverter,
+  panels, battery, cable, accessories, and labor actually cost, backed by
+  the live `installations` table (`0025_installations.sql`).
+  - Four summary cards — Total Amount Charged, Total Amount Used, Total
+    Profit, and Profit Margin (%) — scoped to the header's branch filter,
+    same convention as Inventory Master/Sales Tracker/Customer Detail.
+  - Add/Edit form: total amount charged, then three product-picker rows
+    (Inverter, Solar panels, Battery) — each pulls its price from the
+    catalogue when a product is selected but stays editable, plus a units
+    field for when a job uses more than one. Cable, Accessories, and
+    Installation/labor are plain amount fields (not tied to inventory).
+    Cost and profit are shown live as you fill the form.
+  - **Deliberately doesn't touch stock**: picking a product here only
+    snapshots its price for the record — it does not deduct
+    `product_stock` or write a `stock_movements` row. If the parts really
+    left the shelf, log that separately via Stock Movement. (Also doesn't
+    link to a `customers` row — it's a standalone job record.)
+  - `cost_total` and `profit` are Postgres generated columns (derived from
+    the price/qty/amount fields), not computed in the app, so the numbers
+    can't drift from what's actually stored.
+  - Plain CRUD like Expenses (not append-only) — a data-entry mistake can
+    be corrected in place. Delete is admin-only; create/edit stays open to
+    any signed-in staff member.
+  - Visible to all staff in the sidebar (not admin-only), positioned right
+    after Staff Management.
 - **Settings** (`/dashboard/settings`): personal preferences plus
   system-wide defaults — see "Settings & Dark Mode", "Business Profile",
   "Logo Upload", and "Branch Management" above.
@@ -1274,6 +1300,13 @@ together. Both new sets were re-validated before shipping:
   needed). orange and red fail CVD separation as a pair, same as
   tealDark/magentaDark above, but land two apart here (positions 2 and
   4), not adjacent.
+- **Installation** (Total Amount Charged, Total Amount Used, Total Profit,
+  Profit Margin) uses red, magentaDark, amberDark, and violet, in that
+  order — a contiguous slice of the canonical 8-color sequence, so its
+  three adjacent pairs (red↔magentaDark, magentaDark↔amberDark,
+  amberDark↔violet) are already covered by the master validation above,
+  with no need to re-run it. Sequential safety only, same reasoning as
+  Inventory Master and Customer Detail (all four cards are always shown).
 
 **Smaller, mobile/tablet-friendly cards:** `DashboardCard` itself shrank
 its padding, icon badge, and type sizes at the `sm` breakpoint and below

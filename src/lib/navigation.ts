@@ -10,6 +10,7 @@ import {
   FileText,
   Bell,
   UserCog,
+  Wrench,
   Settings,
 } from "lucide-react";
 import type { NavItem } from "@/types";
@@ -39,5 +40,6 @@ export const navItems: NavItem[] = [
     icon: UserCog,
     adminOnly: true,
   },
+  { label: "Installation", href: "/dashboard/installations", icon: Wrench },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
