@@ -44,10 +44,11 @@ export function InstallationTable({ installations, canDelete }: InstallationTabl
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="truncate font-medium text-gray-900 dark:text-gray-100">
-                  {formatCurrency(installation.totalCharged)}
+                  {installation.customerName || formatCurrency(installation.totalCharged)}
                 </p>
                 <p className="truncate text-xs text-gray-400 dark:text-gray-500">
                   {installation.branchName} · {formatDate(`${installation.installationDate}T00:00:00`)}
+                  {installation.customerName && ` · ${formatCurrency(installation.totalCharged)}`}
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-1">
@@ -90,11 +91,14 @@ export function InstallationTable({ installations, canDelete }: InstallationTabl
       </ul>
 
       <div className="hidden overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm sm:block">
-        <table className="w-full min-w-[960px] text-left text-sm">
+        <table className="w-full min-w-[1080px] text-left text-sm">
           <thead>
             <tr className="border-b border-gray-100 dark:border-gray-800 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
               <th scope="col" className="px-4 py-3 font-medium">
                 Date
+              </th>
+              <th scope="col" className="px-4 py-3 font-medium">
+                Customer
               </th>
               <th scope="col" className="px-4 py-3 font-medium">
                 Branch
@@ -124,6 +128,9 @@ export function InstallationTable({ installations, canDelete }: InstallationTabl
               <tr key={installation.id} className="align-top">
                 <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
                   {formatDate(`${installation.installationDate}T00:00:00`)}
+                </td>
+                <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">
+                  {installation.customerName || "—"}
                 </td>
                 <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{installation.branchName}</td>
                 <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{itemsSummary(installation)}</td>

@@ -152,6 +152,7 @@ export function InstallationForm({
 
   const branchFieldId = useId();
   const dateId = useId();
+  const customerNameId = useId();
   const totalChargedId = useId();
   const cableId = useId();
   const accessoriesId = useId();
@@ -202,6 +203,19 @@ export function InstallationForm({
             type="date"
             required
             defaultValue={initialValues?.installationDate ?? todayISODate()}
+            className={inputClasses}
+          />
+        </div>
+
+        <div className="sm:col-span-2">
+          <label htmlFor={customerNameId} className={labelClasses}>
+            Customer Name <span className="font-normal text-gray-400 dark:text-gray-500">(optional)</span>
+          </label>
+          <input
+            id={customerNameId}
+            name="customerName"
+            defaultValue={initialValues?.customerName ?? ""}
+            placeholder="Who is this installation for?"
             className={inputClasses}
           />
         </div>

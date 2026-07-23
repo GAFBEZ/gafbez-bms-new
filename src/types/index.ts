@@ -224,6 +224,7 @@ export interface Installation {
   branchId: string;
   branchName: string;
   installationDate: string;
+  customerName: string | null;
   totalCharged: number;
   inverterProductId: string | null;
   inverterProductName: string | null;

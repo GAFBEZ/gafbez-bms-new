@@ -12,6 +12,7 @@ export interface InstallationFormState {
 interface ParsedInstallationForm {
   branchId: string;
   installationDate: string;
+  customerName: string | null;
   totalCharged: number;
   inverterProductId: string | null;
   inverterPrice: number;
@@ -42,6 +43,7 @@ function toQty(formData: FormData, key: string): number | null {
 function parseInstallationForm(formData: FormData): ParsedInstallationForm | null {
   const branchId = String(formData.get("branchId") ?? "").trim();
   const installationDate = String(formData.get("installationDate") ?? "").trim();
+  const customerName = String(formData.get("customerName") ?? "").trim();
   const totalCharged = toAmount(formData, "totalCharged");
   const inverterPrice = toAmount(formData, "inverterPrice");
   const inverterQty = toQty(formData, "inverterQty");
@@ -76,6 +78,7 @@ function parseInstallationForm(formData: FormData): ParsedInstallationForm | nul
   return {
     branchId,
     installationDate,
+    customerName: customerName || null,
     totalCharged,
     inverterProductId,
     inverterPrice,
@@ -96,6 +99,7 @@ function toRow(parsed: ParsedInstallationForm) {
   return {
     branch_id: parsed.branchId,
     installation_date: parsed.installationDate,
+    customer_name: parsed.customerName,
     total_charged: parsed.totalCharged,
     inverter_product_id: parsed.inverterProductId,
     inverter_price: parsed.inverterPrice,

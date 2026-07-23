@@ -1189,8 +1189,12 @@ npm run start
   - **Deliberately doesn't touch stock**: picking a product here only
     snapshots its price for the record — it does not deduct
     `product_stock` or write a `stock_movements` row. If the parts really
-    left the shelf, log that separately via Stock Movement. (Also doesn't
-    link to a `customers` row — it's a standalone job record.)
+    left the shelf, log that separately via Stock Movement.
+  - `customer_name` (`0026_installations_customer_name.sql`) is a plain
+    optional text field, not a foreign key — it's for record-keeping
+    ("whose job was this"), and deliberately doesn't link to the
+    `customers` table or that module's purchase history. Shown as the
+    table's lead line/column when present.
   - `cost_total` and `profit` are Postgres generated columns (derived from
     the price/qty/amount fields), not computed in the app, so the numbers
     can't drift from what's actually stored.

@@ -6,6 +6,7 @@ interface InstallationRow {
   id: string;
   branch_id: string;
   installation_date: string;
+  customer_name: string | null;
   total_charged: number;
   inverter_product_id: string | null;
   inverter_price: number;
@@ -35,6 +36,7 @@ function mapRow(row: InstallationRow, staffNames: Record<string, string> = {}): 
     branchId: row.branch_id,
     branchName: row.branches?.name ?? "Unknown branch",
     installationDate: row.installation_date,
+    customerName: row.customer_name,
     totalCharged: Number(row.total_charged),
     inverterProductId: row.inverter_product_id,
     inverterProductName: row.inverter?.name ?? null,
@@ -59,7 +61,7 @@ function mapRow(row: InstallationRow, staffNames: Record<string, string> = {}): 
 }
 
 const SELECT_WITH_JOIN = `
-  id, branch_id, installation_date, total_charged,
+  id, branch_id, installation_date, customer_name, total_charged,
   inverter_product_id, inverter_price, inverter_qty,
   solar_panel_product_id, solar_panel_price, solar_panel_qty,
   battery_product_id, battery_price, battery_qty,
