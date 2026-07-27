@@ -7,11 +7,14 @@ import { navItems } from "@/lib/navigation";
 interface NavListProps {
   onNavigate?: () => void;
   isAdmin: boolean;
+  canManageInstallationProjects: boolean;
 }
 
-export function NavList({ onNavigate, isAdmin }: NavListProps) {
+export function NavList({ onNavigate, isAdmin, canManageInstallationProjects }: NavListProps) {
   const pathname = usePathname();
-  const visibleItems = navItems.filter((item) => !item.adminOnly || isAdmin);
+  const visibleItems = navItems.filter(
+    (item) => (!item.adminOnly || isAdmin) && (!item.managerOrAdmin || canManageInstallationProjects),
+  );
 
   return (
     <nav aria-label="Main navigation" className="flex flex-col gap-1">

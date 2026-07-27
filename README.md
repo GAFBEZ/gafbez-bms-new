@@ -174,6 +174,24 @@ To set up a fresh Supabase project for this app:
      recreated with fresh grants, same technique as `update_product()`'s
      rewrite in `0018_per_branch_stock.sql`). See "Supplier, Profit
      Margin & Reorder Level" below.
+   - `0025_installations.sql` — the `installations` table (Installation
+     module: cost vs. profit per solar installation job), RLS policies,
+     and generated `cost_total`/`profit` columns.
+   - `0026_installations_customer_name.sql` — adds an optional plain-text
+     `customer_name` column to `installations` (record-keeping only, not a
+     foreign key to `customers`).
+   - `0027_installations_admin_only.sql` — adds an `is_admin()` check to
+     `installations`' RLS policies, matching Inventory Master and Staff
+     Management.
+   - `0028_website_catalogue.sql` — Website Catalogue (Stage 2): 15 new
+     website-facing columns on `products` (brand, model, descriptions,
+     website price/slug, images, specifications, visibility/featured/combo/
+     calculator flags), a safe public `website_catalogue` view, the
+     `get_website_catalogue_by_branch()` and
+     `update_product_website_details()` functions, and a public
+     `product-images` Storage bucket. Owner/Admin only to write, and never
+     exposes `cost_price`/`selling_price`/`reorder_level`/`supplier`. See
+     `WEBSITE_CATALOGUE_NOTES.md` for the full breakdown.
 4. Create your first staff account: **Authentication → Users → Add user →
    Create new user** in the Supabase dashboard (check "Auto Confirm User").
    This app has no public sign-up — staff accounts are provisioned this way,
@@ -981,6 +999,18 @@ npm run start
     **Profit Margin** (computed, ₦ amount + %), and **Reorder Level** —
     see "Supplier, Profit Margin & Reorder Level" above.
   - Prices formatted as Naira via `src/lib/format.ts`.
+  - **Website Details tab** (Edit Product only, `0028_website_catalogue.sql`):
+    a second tab next to Inventory Details — brand, model, short/full
+    description, website price (separate from cost/selling price),
+    website URL slug, warranty text, display order, visible/featured/
+    combo-eligible/calculator-eligible flags, a reusable key-value
+    Specification Editor, a main-image + gallery uploader (`product-images`
+    Storage bucket), and a read-only website preview card. Admin-only in
+    the database via `update_product_website_details()`, not just the
+    page — see `WEBSITE_CATALOGUE_NOTES.md` for the full breakdown,
+    including the safe public `website_catalogue` view and
+    `get_website_catalogue_by_branch()` RPC this data feeds (not consumed
+    by this app yet — for the separate public website project).
 - **Stock Movement** (`/dashboard/stock-movement`): an append-only ledger
   of stock received/issued per branch, backed by the live
   `stock_movements` table.
@@ -1267,6 +1297,90 @@ fields below) instead of laid out in columns. `DashboardCard`-based
 summary rows (KPI cards) didn't need this — they already used a
 `grid-cols-2` layout that fits a phone width on its own.
 
+## Stage 6 — Combo Packages, Installations, Refunds & Store Credit
+
+New migration: `supabase/migrations/0031_combo_packages_installations_refunds_credit.sql`. Full
+architecture writeup lives in the website project's
+[STAGE_6_COMBOS_REFUNDS_CREDIT_NOTES.md](../gafbeznewweb/STAGE_6_COMBOS_REFUNDS_CREDIT_NOTES.md)
+(the customer-facing side of Stage 6 lives there); this is the BMS-side summary.
+
+- **New dashboard sections:** Combo Packages (`/dashboard/combo-packages` — view for any staff,
+  create/edit Owner/Admin-only, including live component-cost/profit via
+  `get_combo_package_profit()`), Installation Jobs (`/dashboard/installation-jobs` — the
+  site-inspection → installation workflow), Refund Requests (`/dashboard/refunds` — Manager
+  operational approval, Owner final approval + Paystack refund), and Store Credit
+  (`/dashboard/store-credit` — Owner/Admin only, balances/liability/ledger/manual adjustment).
+- **Role model extension:** this schema never had a `manager` role (only `admin`/`staff` — see
+  0002/0008). Rather than fake a third role value, two additive `profiles` columns were added:
+  `is_branch_manager` (Manager = non-admin + assigned branch + this flag) and
+  `can_manage_installations` (Owner-granted permission letting a specific salesperson act on
+  installation jobs). **No Staff Management UI exists yet for either flag** — set them directly in
+  SQL/the Supabase dashboard for now (`update public.profiles set is_branch_manager = true where
+  id = '...'`). `src/lib/auth.ts`'s `getCurrentUser()` now returns both.
+- **Paystack refunds run from this app**, not the website — `src/lib/paystack.ts` (a new
+  server-only refund client) is called from `src/app/dashboard/refunds/actions.ts`'s
+  `ownerApproveRefund`, using this project's own `PAYSTACK_SECRET_KEY` (see `.env.example`). If
+  it's unset or the call fails, the request is left `processing` for "Record Manual Completion"
+  instead of silently losing the approval.
+- Every new table (`combo_packages`, `combo_package_components`, `combo_order_details`,
+  `installation_jobs`, `refund_requests`, `store_credit_accounts`, `store_credit_ledger`) follows
+  the existing "RLS for reads only, every write through a `SECURITY DEFINER` function" convention
+  — there is no direct insert/update/delete grant on any of them.
+
+## Stage 7 — Advanced Solar Load Calculator (Website-Only)
+
+New migration: `supabase/migrations/0032_load_calculator.sql`. Stage 7 is a website-only feature (no
+new BMS dashboard screens) — the full architecture, formula, and product-matching writeup lives in the
+website project's
+[STAGE_7_LOAD_CALCULATOR_NOTES.md](../gafbeznewweb/STAGE_7_LOAD_CALCULATOR_NOTES.md). This migration
+exists in this repo only because every Supabase migration for both apps lives here, per this project's
+established convention.
+
+- **Two new tables**, both following the same "RLS for reads only, every write through a `SECURITY
+  DEFINER` function" convention as every table since Stage 5: `customer_load_calculations` (a
+  logged-in customer's saved calculator run — `save_load_calculation()`/`delete_load_calculation()`)
+  and `load_calculator_quotation_requests` (a "Request Quotation" lead —
+  `submit_load_calculator_quotation_request()`, open to anon **and** authenticated, unlike the
+  order-creation RPCs, since it reserves no stock and creates no order — see the migration's own
+  header comment for the full reasoning).
+- **No new BMS screen**: a quotation request drops a row into the existing `public.notifications`
+  table (0009) with the customer's name, phone, branch and recommended system size, so it already
+  surfaces on the current Notifications page.
+- All product/combo-package matching for the calculator reads only the existing safe, customer-facing
+  data objects from Stages 2/6 (`public.website_catalogue`, `get_website_catalogue_by_branch()`,
+  `get_website_combo_packages_by_branch()`) — no new product read surface, and no exposure of
+  `cost_price`/profit/supplier data anywhere in the new tables or functions.
+
+## Stage 8 — Installation Gallery, Security Hardening & Launch Prep (Final Stage)
+
+New migration: `supabase/migrations/0033_installation_projects.sql`. Full architecture, security
+findings, and launch checklist live in the website project's
+[STAGE_8_FINAL_RELEASE_NOTES.md](../gafbeznewweb/STAGE_8_FINAL_RELEASE_NOTES.md) and
+[LAUNCH_CHECKLIST.md](../gafbeznewweb/LAUNCH_CHECKLIST.md); this is the BMS-side summary.
+
+- **New dashboard section:** Installation Projects (`/dashboard/installation-projects` — list/search/
+  filter, create/edit, main-image + gallery-image upload with reorder, visibility/featured toggles,
+  display order). Nav-gated to Owner/Manager only via a new `NavItem.managerOrAdmin` flag (`src/lib/
+  navigation.ts`, `src/components/layout/NavList.tsx`) — the first nav item that isn't simply
+  `adminOnly` or open to all staff.
+- **Two new tables** (`installation_projects`, `installation_enquiries`) and a new
+  `can_manage_installation_projects()` helper, reusing the exact Stage 6 `is_branch_manager`/
+  `can_manage_installations` flags rather than adding a new permission concept.
+- **New `installation-images` storage bucket** — public read, 5MB, JPEG/PNG/WebP, **Owner/Manager
+  write** (a deliberate deviation from the admin-only `product-images`/`combo-package-images`
+  precedent, per this stage's explicit brief).
+- **Critical security fix, found during this stage's full RLS audit, not introduced by it:**
+  `product_stock` had a `for all using(true) with check(true)` policy — since customer accounts share
+  the `authenticated` Postgres role with BMS staff, any signed-up website customer could write or
+  delete the real stock ledger directly. Fixed, along with the same root-cause bug on `products`,
+  `customers`, `expenses`, `notifications`, `documents`, `stock_movements`, `sales`/`sale_items`, and
+  `sale_returns`, via a new `is_staff()` helper. **Read STAGE_8_FINAL_RELEASE_NOTES.md §3 before
+  applying this migration to any database with real data.**
+- Also in this migration: a missing FK on `store_credit_ledger.refund_request_id`, three missing
+  `>= 0` CHECK constraints, three `on delete cascade` → `restrict` fixes protecting audit-trail
+  integrity, 14 missing defense-in-depth `anon` grant revokes on Stage 6 functions, and ~35 missing
+  indexes on foreign-key columns (Postgres doesn't auto-index these).
+
 ## Dashboard Color Palette
 
 The 8 metric-card accent colors (`src/lib/palette.ts`) aren't hand-picked —
@@ -1333,6 +1447,20 @@ on a small phone instead of stacking full-width and tall.
 
 ## Features Intentionally Not Implemented Yet
 
+- **Stage 6:** no Staff Management UI for the new `is_branch_manager`/`can_manage_installations`
+  flags (SQL-only for now); no image-upload widget for the `combo-package-images` bucket (paste a
+  URL after uploading elsewhere); multi-package orders (one package per order in this stage).
+- **Stage 7:** no BMS screen for `load_calculator_quotation_requests` (staff currently only see the
+  notification summary, not the full appliance/calculation detail — see the website's
+  STAGE_7_LOAD_CALCULATOR_NOTES.md for the recommended follow-up); combo-package capacity matching in
+  the calculator is best-effort (parsed from free-text `system_capacity_text`, since
+  `combo_packages` has no structured numeric capacity column).
+- **Stage 8:** `public.notifications` has no per-recipient targeting at all — "notify the Owner and
+  the selected branch's Manager" (installation enquiries, and every prior stage's equivalent asks)
+  is only ever a best-effort broadcast every staff member can see, since the table has no recipient/
+  branch-filtering column; a real fix would be a schema change, out of scope as a "major new business
+  feature" for a final hardening stage. No BMS screen exists to review `installation_enquiries` in
+  full (same pattern as Stage 7's quotation requests — staff see the notification summary only).
 - Only **deleting** is role-gated (products, customers, expenses — admins
   only, see "Role enforcement" above), plus staff management itself
   (role/branch/active-status changes — admins only, see "Staff Management"
@@ -1373,5 +1501,14 @@ on a small phone instead of stacking full-width and tall.
 - The stylized two-line wordmark next to the logo mark ("GAFBEZ" /
   "ENERGIES LTD") stays static text — see "Logo Upload" above for why an
   arbitrary business name isn't auto-split into that layout.
+- **Website Catalogue** (`0028_website_catalogue.sql`) is BMS-side only —
+  this app doesn't call `website_catalogue` or
+  `get_website_catalogue_by_branch()` itself, and doesn't render a public
+  shop. It ships the data model, security, and Inventory Master UI a
+  separate public website project can consume. Also out of scope for this
+  stage, by design: checkout, Paystack, customer accounts/carts/orders,
+  stock reservations, combo packages, and the advanced load calculator
+  (`is_combo_eligible`/`calculator_eligible` are plain flags with no
+  feature behind them yet). See `WEBSITE_CATALOGUE_NOTES.md`.
 
 These will be addressed in later development stages.

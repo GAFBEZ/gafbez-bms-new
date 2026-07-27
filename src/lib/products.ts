@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Product } from "@/types";
+import type { Product, ProductWebsiteDetails } from "@/types";
 
 interface ProductRow {
   id: string;
@@ -15,7 +15,45 @@ interface ProductRow {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  brand: string | null;
+  model: string | null;
+  short_description: string | null;
+  full_description: string | null;
+  website_price: number | null;
+  website_slug: string | null;
+  product_image_url: string | null;
+  gallery_image_urls: string[] | null;
+  specifications: Record<string, string> | null;
+  warranty_text: string | null;
+  is_visible_on_website: boolean;
+  is_featured_on_website: boolean;
+  website_display_order: number;
+  is_combo_eligible: boolean;
+  calculator_eligible: boolean;
   product_stock?: { quantity: number }[];
+}
+
+const PRODUCT_COLUMNS =
+  "id, sku, name, category, unit, cost_price, selling_price, quantity_in_stock, reorder_level, supplier, is_active, created_at, updated_at, brand, model, short_description, full_description, website_price, website_slug, product_image_url, gallery_image_urls, specifications, warranty_text, is_visible_on_website, is_featured_on_website, website_display_order, is_combo_eligible, calculator_eligible";
+
+function mapWebsiteDetails(row: ProductRow): ProductWebsiteDetails {
+  return {
+    brand: row.brand,
+    model: row.model,
+    shortDescription: row.short_description,
+    fullDescription: row.full_description,
+    websitePrice: row.website_price === null ? null : Number(row.website_price),
+    websiteSlug: row.website_slug,
+    productImageUrl: row.product_image_url,
+    galleryImageUrls: row.gallery_image_urls ?? [],
+    specifications: row.specifications ?? {},
+    warrantyText: row.warranty_text,
+    isVisibleOnWebsite: row.is_visible_on_website,
+    isFeaturedOnWebsite: row.is_featured_on_website,
+    websiteDisplayOrder: row.website_display_order,
+    isComboEligible: row.is_combo_eligible,
+    calculatorEligible: row.calculator_eligible,
+  };
 }
 
 function mapRow(row: ProductRow, branchId: string): Product {
@@ -36,6 +74,7 @@ function mapRow(row: ProductRow, branchId: string): Product {
     isActive: row.is_active,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    website: mapWebsiteDetails(row),
   };
 }
 
@@ -48,11 +87,9 @@ function mapRow(row: ProductRow, branchId: string): Product {
  */
 export async function getProducts(branchId: string = "all"): Promise<Product[]> {
   const supabase = await createClient();
-  const baseColumns =
-    "id, sku, name, category, unit, cost_price, selling_price, quantity_in_stock, reorder_level, supplier, is_active, created_at, updated_at";
   let query = supabase
     .from("products")
-    .select(branchId === "all" ? baseColumns : `${baseColumns}, product_stock(quantity)`)
+    .select(branchId === "all" ? PRODUCT_COLUMNS : `${PRODUCT_COLUMNS}, product_stock(quantity)`)
     .order("name");
 
   if (branchId !== "all") {
@@ -73,9 +110,7 @@ export async function getProduct(id: string): Promise<Product | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("products")
-    .select(
-      "id, sku, name, category, unit, cost_price, selling_price, quantity_in_stock, reorder_level, supplier, is_active, created_at, updated_at",
-    )
+    .select(PRODUCT_COLUMNS)
     .eq("id", id)
     .single();
 

@@ -8,6 +8,8 @@ interface StaffRow {
   role: StaffRole;
   branch_id: string | null;
   is_active: boolean;
+  is_branch_manager: boolean;
+  can_manage_installations: boolean;
   created_at: string;
   branches: { name: string } | null;
 }
@@ -21,12 +23,14 @@ function mapRow(row: StaffRow): StaffMember {
     branchId: row.branch_id,
     branchName: row.branches?.name ?? null,
     isActive: row.is_active,
+    isBranchManager: row.is_branch_manager,
+    canManageInstallations: row.can_manage_installations,
     createdAt: row.created_at,
   };
 }
 
 const SELECT_COLUMNS =
-  "id, email, full_name, role, branch_id, is_active, created_at, branches(name)";
+  "id, email, full_name, role, branch_id, is_active, is_branch_manager, can_manage_installations, created_at, branches(name)";
 
 /** Admin-only: RLS only lets admins read other users' profile rows. */
 export async function getStaffMembers(): Promise<StaffMember[]> {

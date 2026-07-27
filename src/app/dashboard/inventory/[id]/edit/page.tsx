@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { ProductForm } from "@/components/inventory/ProductForm";
+import { ProductEditTabs } from "@/components/inventory/ProductEditTabs";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { updateProduct } from "@/app/dashboard/inventory/actions";
 import { getProduct } from "@/lib/products";
@@ -38,11 +38,7 @@ export default async function EditProductPage({
         title="Edit Product"
         description={`Update details for ${product.name}.`}
       />
-      <ProductForm
-        action={updateProductWithId}
-        initialValues={product}
-        submitLabel="Save Changes"
-      />
+      <ProductEditTabs product={product} updateAction={updateProductWithId} />
     </div>
   );
 }

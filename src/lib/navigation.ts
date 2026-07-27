@@ -12,6 +12,11 @@ import {
   UserCog,
   Wrench,
   Settings,
+  Package,
+  ClipboardCheck,
+  Undo2,
+  Coins,
+  Images,
 } from "lucide-react";
 import type { NavItem } from "@/types";
 
@@ -44,6 +49,33 @@ export const navItems: NavItem[] = [
     label: "Installation",
     href: "/dashboard/installations",
     icon: Wrench,
+    adminOnly: true,
+  },
+  {
+    label: "Combo Packages",
+    href: "/dashboard/combo-packages",
+    icon: Package,
+  },
+  {
+    label: "Installation Jobs",
+    href: "/dashboard/installation-jobs",
+    icon: ClipboardCheck,
+  },
+  {
+    label: "Refund Requests",
+    href: "/dashboard/refunds",
+    icon: Undo2,
+  },
+  {
+    label: "Installation Projects",
+    href: "/dashboard/installation-projects",
+    icon: Images,
+    managerOrAdmin: true,
+  },
+  {
+    label: "Store Credit",
+    href: "/dashboard/store-credit",
+    icon: Coins,
     adminOnly: true,
   },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },

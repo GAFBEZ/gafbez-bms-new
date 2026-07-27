@@ -7,10 +7,10 @@ import { formatCurrency } from "@/lib/format";
 import type { Product } from "@/types";
 
 interface CatalogueGridProps {
-  products: Omit<Product, "costPrice" | "supplier">[];
+  products: Omit<Product, "costPrice" | "supplier" | "website">[];
 }
 
-function stockStatus(product: Omit<Product, "costPrice" | "supplier">): { label: string; className: string } {
+function stockStatus(product: Omit<Product, "costPrice" | "supplier" | "website">): { label: string; className: string } {
   if (product.quantityInStock === 0) {
     return { label: "Out of stock", className: "bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400" };
   }

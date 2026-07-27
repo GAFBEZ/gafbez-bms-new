@@ -28,14 +28,21 @@ export function DashboardShell({
 }: DashboardShellProps) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const isAdmin = user?.role === "admin";
+  const canManageInstallationProjects = isAdmin || Boolean(user?.isBranchManager) || Boolean(user?.canManageInstallations);
 
   return (
     <div className="flex min-h-screen bg-page">
-      <Sidebar isAdmin={isAdmin} logoUrl={logoUrl} businessName={businessName} />
+      <Sidebar
+        isAdmin={isAdmin}
+        canManageInstallationProjects={canManageInstallationProjects}
+        logoUrl={logoUrl}
+        businessName={businessName}
+      />
       <MobileNav
         open={mobileNavOpen}
         onClose={() => setMobileNavOpen(false)}
         isAdmin={isAdmin}
+        canManageInstallationProjects={canManageInstallationProjects}
         logoUrl={logoUrl}
       />
 

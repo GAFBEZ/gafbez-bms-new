@@ -8,6 +8,13 @@ export interface CurrentUser {
   role: string;
   isActive: boolean;
   branchId: string | null;
+  /** Stage 6: "Manager" of their assigned branch -- see the role-model
+   * header comment in 0031_combo_packages_installations_refunds_credit.sql
+   * for why this is a flag rather than a third `role` value. */
+  isBranchManager: boolean;
+  /** Stage 6: Owner-granted permission letting a non-manager branch
+   * salesperson act on installation_jobs. */
+  canManageInstallations: boolean;
 }
 
 /**
@@ -27,7 +34,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, role, is_active, branch_id")
+    .select("full_name, role, is_active, branch_id, is_branch_manager, can_manage_installations")
     .eq("id", claims.sub)
     .single();
 
@@ -38,5 +45,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     role: profile?.role ?? "staff",
     isActive: profile?.is_active ?? true,
     branchId: profile?.branch_id ?? null,
+    isBranchManager: profile?.is_branch_manager ?? false,
+    canManageInstallations: profile?.can_manage_installations ?? false,
   };
 });
