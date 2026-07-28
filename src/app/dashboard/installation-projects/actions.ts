@@ -110,12 +110,15 @@ export async function createInstallationProject(
   if (!values.title || !values.websiteSlug) return { error: FORM_ERROR };
 
   const supabase = await createClient();
-  const { error } = await supabase.rpc("create_installation_project", rpcParams(values));
+  const { data, error } = await supabase.rpc("create_installation_project", rpcParams(values));
 
   if (error) return { error: error.message };
 
   revalidatePath("/dashboard/installation-projects");
-  redirect("/dashboard/installation-projects");
+  // Straight to the edit page, not the list -- this form's own subtitle
+  // says "Upload images after saving," which only actually works as a
+  // one-step flow if landing here also lands you where the uploaders are.
+  redirect(`/dashboard/installation-projects/${data.id}`);
 }
 
 export async function updateInstallationProject(
@@ -126,10 +129,15 @@ export async function updateInstallationProject(
   const values = fromFormData(formData);
   if (!values.title || !values.websiteSlug) return { error: FORM_ERROR };
 
-  // Gallery images are managed by the image uploader widgets (their own
-  // Server Actions below), not this form -- preserve whatever is already
-  // saved rather than wiping it out on every metadata save.
+  // Main image and gallery images are both managed by the image uploader
+  // widgets (their own Server Actions below), not this form -- preserve
+  // whatever is already saved rather than wiping either out on every
+  // metadata save. (mainImageUrl was previously missing here, which
+  // silently cleared a project's main image on its next unrelated details
+  // edit -- see the update_installation_project RPC, a full-replace call
+  // where an empty string here is written through as NULL.)
   const existing = await getInstallationProject(id);
+  values.mainImageUrl = existing?.mainImageUrl ?? "";
   values.galleryImageUrls = existing?.galleryImageUrls ?? [];
 
   const supabase = await createClient();
@@ -179,35 +187,17 @@ export async function deleteInstallationProject(id: string): Promise<void> {
 }
 
 // ---------------------------------------------------------------------
-// Image upload/remove/reorder -- same pattern as
-// src/app/dashboard/inventory/actions.ts's product image uploader
-// (fixed path + upsert for the single main image, unique filename per
-// gallery upload), adapted to the installation-images bucket and to
-// update_installation_project()'s full-replace RPC instead of a direct
-// table update.
+// Image save/remove/reorder -- the file bytes themselves are uploaded to
+// Supabase Storage directly from the browser (see
+// InstallationProjectImageUploader.tsx), NOT proxied through these
+// Server Actions. A Server Action's request body goes through Vercel's
+// serverless function pipeline, which hard-caps request bodies at 4.5MB
+// regardless of any Next.js config -- well under this bucket's own 5MB
+// per-file limit, so routing uploads through a Server Action fails on
+// any real photo. These actions only ever receive a short URL string
+// (or a handful of them) after the browser has already uploaded the
+// file straight to Storage, so they stay tiny no matter the image size.
 // ---------------------------------------------------------------------
-
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-
-function extensionFor(file: File): string {
-  if (file.type === "image/png") return "png";
-  if (file.type === "image/webp") return "webp";
-  return "jpg";
-}
-
-function validateImageFile(file: FormDataEntryValue | null): { error: string } | { file: File } {
-  if (!(file instanceof File) || file.size === 0) {
-    return { error: "Choose an image file to upload." };
-  }
-  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-    return { error: "Images must be JPEG, PNG, or WebP." };
-  }
-  if (file.size > MAX_IMAGE_BYTES) {
-    return { error: "Images must be 5MB or smaller." };
-  }
-  return { file };
-}
 
 function extractInstallationImagesPath(publicUrl: string): string | null {
   const marker = "/object/public/installation-images/";
@@ -221,29 +211,14 @@ async function saveProject(id: string, values: ProjectFieldValues) {
   return supabase.rpc("update_installation_project", { p_id: id, ...rpcParams(values) });
 }
 
-export async function uploadInstallationMainImage(
+export async function saveInstallationMainImageUrl(
   projectId: string,
-  _prevState: InstallationProjectFormState,
-  formData: FormData,
+  imageUrl: string,
 ): Promise<InstallationProjectFormState> {
-  const validated = validateImageFile(formData.get("mainImage"));
-  if ("error" in validated) return { error: validated.error };
-
   const project = await getInstallationProject(projectId);
   if (!project) return { error: "Installation project not found." };
 
-  const supabase = await createClient();
-  const path = `${projectId}/main.${extensionFor(validated.file)}`;
-
-  const { error: uploadError } = await supabase.storage
-    .from("installation-images")
-    .upload(path, validated.file, { upsert: true, contentType: validated.file.type });
-
-  if (uploadError) return { error: uploadError.message };
-
-  const { data: publicUrlData } = supabase.storage.from("installation-images").getPublicUrl(path);
-
-  const { error } = await saveProject(projectId, { ...fromProject(project), mainImageUrl: publicUrlData.publicUrl });
+  const { error } = await saveProject(projectId, { ...fromProject(project), mainImageUrl: imageUrl });
   if (error) return { error: error.message };
 
   revalidatePath(`/dashboard/installation-projects/${projectId}`);
@@ -264,32 +239,18 @@ export async function removeInstallationMainImage(projectId: string): Promise<vo
   revalidatePath(`/dashboard/installation-projects/${projectId}`);
 }
 
-export async function uploadInstallationGalleryImage(
+export async function addInstallationGalleryImageUrls(
   projectId: string,
-  _prevState: InstallationProjectFormState,
-  formData: FormData,
+  imageUrls: string[],
 ): Promise<InstallationProjectFormState> {
-  const validated = validateImageFile(formData.get("galleryImage"));
-  if ("error" in validated) return { error: validated.error };
+  if (imageUrls.length === 0) return { error: "Choose at least one image file to upload." };
 
   const project = await getInstallationProject(projectId);
   if (!project) return { error: "Installation project not found." };
 
-  const supabase = await createClient();
-  const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const path = `${projectId}/gallery/${uniqueSuffix}.${extensionFor(validated.file)}`;
-
-  const { error: uploadError } = await supabase.storage
-    .from("installation-images")
-    .upload(path, validated.file, { contentType: validated.file.type });
-
-  if (uploadError) return { error: uploadError.message };
-
-  const { data: publicUrlData } = supabase.storage.from("installation-images").getPublicUrl(path);
-
   const { error } = await saveProject(projectId, {
     ...fromProject(project),
-    galleryImageUrls: [...project.galleryImageUrls, publicUrlData.publicUrl],
+    galleryImageUrls: [...project.galleryImageUrls, ...imageUrls],
   });
   if (error) return { error: error.message };
 

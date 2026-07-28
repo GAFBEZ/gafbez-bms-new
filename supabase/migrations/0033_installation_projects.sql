@@ -713,23 +713,23 @@ create policy "Staff can read products"
 -- record_stock_movement()/record_return() are all confirmed SECURITY
 -- DEFINER) but are tightened the same way for consistent read-scoping.
 
+-- Delete on customers is already correctly admin-gated ("Only admins can
+-- delete customers", 0008) -- left as-is, same reasoning as products above.
 drop policy "Authenticated users can read customers" on public.customers;
 drop policy "Authenticated users can insert customers" on public.customers;
 drop policy "Authenticated users can update customers" on public.customers;
-drop policy "Authenticated users can delete customers" on public.customers;
 create policy "Staff can read customers" on public.customers for select to authenticated using (public.is_staff());
 create policy "Staff can insert customers" on public.customers for insert to authenticated with check (public.is_staff());
 create policy "Staff can update customers" on public.customers for update to authenticated using (public.is_staff());
-create policy "Staff can delete customers" on public.customers for delete to authenticated using (public.is_staff());
 
+-- Delete on expenses is already correctly admin-gated ("Only admins can
+-- delete expenses", 0008) -- left as-is, same reasoning as products above.
 drop policy "Authenticated users can read expenses" on public.expenses;
 drop policy "Authenticated users can insert expenses" on public.expenses;
 drop policy "Authenticated users can update expenses" on public.expenses;
-drop policy "Authenticated users can delete expenses" on public.expenses;
 create policy "Staff can read expenses" on public.expenses for select to authenticated using (public.is_staff());
 create policy "Staff can insert expenses" on public.expenses for insert to authenticated with check (public.is_staff());
 create policy "Staff can update expenses" on public.expenses for update to authenticated using (public.is_staff());
-create policy "Staff can delete expenses" on public.expenses for delete to authenticated using (public.is_staff());
 
 drop policy "Authenticated users can read notifications" on public.notifications;
 drop policy "Authenticated users can insert notifications" on public.notifications;
