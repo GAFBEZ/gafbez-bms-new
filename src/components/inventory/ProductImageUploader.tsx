@@ -4,6 +4,7 @@ import { useId, useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import { AlertCircle, ImageIcon, Upload, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { extensionFor, prepareImageFile } from "@/lib/imageUpload";
 import {
   addProductGalleryImageUrls,
   removeProductGalleryImage,
@@ -12,8 +13,6 @@ import {
 } from "@/app/dashboard/inventory/actions";
 
 const ACCEPT = "image/jpeg,image/png,image/webp";
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const PRODUCT_IMAGES_BUCKET = "product-images";
 
 // Uploaded straight from the browser to Supabase Storage rather than
@@ -23,18 +22,8 @@ const PRODUCT_IMAGES_BUCKET = "product-images";
 // under this bucket's own 5MB per-file limit. Uploading client-side
 // bypasses that ceiling entirely; only the resulting URL goes through a
 // Server Action afterward, to persist it on the product's website details.
-
-function extensionFor(file: File): string {
-  if (file.type === "image/png") return "png";
-  if (file.type === "image/webp") return "webp";
-  return "jpg";
-}
-
-function validateImageFile(file: File): string | null {
-  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) return "Images must be JPEG, PNG, or WebP.";
-  if (file.size > MAX_IMAGE_BYTES) return "Images must be 5MB or smaller.";
-  return null;
-}
+// Files over the bucket's 5MB-per-file limit are compressed client-side
+// (see prepareImageFile) rather than just rejected.
 
 interface MainImageUploaderProps {
   productId: string;
@@ -56,23 +45,25 @@ export function MainImageUploader({ productId, imageUrl }: MainImageUploaderProp
       setError("Choose an image file to upload.");
       return;
     }
-    const validationError = validateImageFile(file);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
 
     setError(null);
     startUploadTransition(async () => {
+      const prepared = await prepareImageFile(file);
+      if ("error" in prepared) {
+        setError(prepared.error);
+        return;
+      }
+      const readyFile = prepared.file;
+
       const supabase = createClient();
       // Fixed path per product (upsert), same technique as the branding
       // logo (0020_logo_upload.sql) -- replacing the main image never
       // leaves an orphaned old file behind under a different extension.
-      const path = `${productId}/main.${extensionFor(file)}`;
+      const path = `${productId}/main.${extensionFor(readyFile.type)}`;
 
       const { error: uploadError } = await supabase.storage
         .from(PRODUCT_IMAGES_BUCKET)
-        .upload(path, file, { upsert: true, contentType: file.type });
+        .upload(path, readyFile, { upsert: true, contentType: readyFile.type });
 
       if (uploadError) {
         setError(uploadError.message);
@@ -142,7 +133,7 @@ export function MainImageUploader({ productId, imageUrl }: MainImageUploaderProp
             )}
           </form>
           <p className="text-[11px] text-gray-400 dark:text-gray-500">
-            JPEG, PNG, or WebP, up to 5MB. Shown as the main photo on the product page.
+            JPEG, PNG, or WebP. Large photos are compressed automatically. Shown as the main photo on the product page.
           </p>
         </div>
       </div>
@@ -187,13 +178,6 @@ export function GalleryUploader({ productId, imageUrls }: GalleryUploaderProps) 
       setError(`Upload at most ${MAX_GALLERY_FILES_PER_UPLOAD} images at a time.`);
       return;
     }
-    for (const file of files) {
-      const validationError = validateImageFile(file);
-      if (validationError) {
-        setError(validationError);
-        return;
-      }
-    }
 
     setError(null);
     startUploadTransition(async () => {
@@ -201,15 +185,22 @@ export function GalleryUploader({ productId, imageUrls }: GalleryUploaderProps) 
       const uploadedUrls: string[] = [];
 
       for (const file of files) {
+        const prepared = await prepareImageFile(file);
+        if ("error" in prepared) {
+          setError(prepared.error);
+          return;
+        }
+        const readyFile = prepared.file;
+
         // Unique filename per gallery upload (timestamp + random suffix),
         // unlike the main image's fixed path -- a product can have many
         // gallery images at once, so each needs its own object.
         const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-        const path = `${productId}/gallery/${uniqueSuffix}.${extensionFor(file)}`;
+        const path = `${productId}/gallery/${uniqueSuffix}.${extensionFor(readyFile.type)}`;
 
         const { error: uploadError } = await supabase.storage
           .from(PRODUCT_IMAGES_BUCKET)
-          .upload(path, file, { contentType: file.type });
+          .upload(path, readyFile, { contentType: readyFile.type });
 
         if (uploadError) {
           setError(uploadError.message);
@@ -275,7 +266,8 @@ export function GalleryUploader({ productId, imageUrls }: GalleryUploaderProps) 
         </button>
       </form>
       <p className="text-[11px] text-gray-400 dark:text-gray-500">
-        Select multiple files to upload them all at once (up to 10), JPEG, PNG, or WebP, up to 5MB each.
+        Select multiple files to upload them all at once (up to 10), JPEG, PNG, or WebP. Large photos are compressed
+        automatically.
       </p>
 
       {error && (

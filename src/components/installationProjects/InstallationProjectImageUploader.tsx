@@ -4,6 +4,7 @@ import { useId, useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import { AlertCircle, ArrowDown, ArrowUp, ImageIcon, Upload, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { extensionFor, prepareImageFile } from "@/lib/imageUpload";
 import {
   addInstallationGalleryImageUrls,
   moveInstallationGalleryImage,
@@ -13,8 +14,6 @@ import {
 } from "@/app/dashboard/installation-projects/actions";
 
 const ACCEPT = "image/jpeg,image/png,image/webp";
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_GALLERY_FILES_PER_UPLOAD = 10;
 const INSTALLATION_IMAGES_BUCKET = "installation-images";
 
@@ -24,19 +23,9 @@ const INSTALLATION_IMAGES_BUCKET = "installation-images";
 // bodies at 4.5MB no matter what Next.js is configured to allow, well
 // under this bucket's own 5MB per-file limit. Uploading client-side
 // bypasses that ceiling entirely; only the resulting URL(s) go through a
-// Server Action afterward, to persist them on the project row.
-
-function extensionFor(file: File): string {
-  if (file.type === "image/png") return "png";
-  if (file.type === "image/webp") return "webp";
-  return "jpg";
-}
-
-function validateImageFile(file: File): string | null {
-  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) return "Images must be JPEG, PNG, or WebP.";
-  if (file.size > MAX_IMAGE_BYTES) return "Images must be 5MB or smaller.";
-  return null;
-}
+// Server Action afterward, to persist them on the project row. Files
+// over the bucket's 5MB-per-file limit are compressed client-side (see
+// prepareImageFile) rather than just rejected.
 
 interface MainImageUploaderProps {
   projectId: string;
@@ -58,20 +47,22 @@ export function InstallationMainImageUploader({ projectId, imageUrl }: MainImage
       setError("Choose an image file to upload.");
       return;
     }
-    const validationError = validateImageFile(file);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
 
     setError(null);
     startUploadTransition(async () => {
+      const prepared = await prepareImageFile(file);
+      if ("error" in prepared) {
+        setError(prepared.error);
+        return;
+      }
+      const readyFile = prepared.file;
+
       const supabase = createClient();
-      const path = `${projectId}/main.${extensionFor(file)}`;
+      const path = `${projectId}/main.${extensionFor(readyFile.type)}`;
 
       const { error: uploadError } = await supabase.storage
         .from(INSTALLATION_IMAGES_BUCKET)
-        .upload(path, file, { upsert: true, contentType: file.type });
+        .upload(path, readyFile, { upsert: true, contentType: readyFile.type });
 
       if (uploadError) {
         setError(uploadError.message);
@@ -134,7 +125,7 @@ export function InstallationMainImageUploader({ projectId, imageUrl }: MainImage
               </button>
             )}
           </form>
-          <p className="text-[11px] text-gray-400 dark:text-gray-500">JPEG, PNG, or WebP, up to 5MB. Shown as the main photo everywhere this project appears.</p>
+          <p className="text-[11px] text-gray-400 dark:text-gray-500">JPEG, PNG, or WebP. Large photos are compressed automatically. Shown as the main photo everywhere this project appears.</p>
         </div>
       </div>
 
@@ -173,13 +164,6 @@ export function InstallationGalleryUploader({ projectId, imageUrls }: GalleryUpl
       setError(`Upload at most ${MAX_GALLERY_FILES_PER_UPLOAD} images at a time.`);
       return;
     }
-    for (const file of files) {
-      const validationError = validateImageFile(file);
-      if (validationError) {
-        setError(validationError);
-        return;
-      }
-    }
 
     setError(null);
     startUploadTransition(async () => {
@@ -187,12 +171,19 @@ export function InstallationGalleryUploader({ projectId, imageUrls }: GalleryUpl
       const uploadedUrls: string[] = [];
 
       for (const file of files) {
+        const prepared = await prepareImageFile(file);
+        if ("error" in prepared) {
+          setError(prepared.error);
+          return;
+        }
+        const readyFile = prepared.file;
+
         const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-        const path = `${projectId}/gallery/${uniqueSuffix}.${extensionFor(file)}`;
+        const path = `${projectId}/gallery/${uniqueSuffix}.${extensionFor(readyFile.type)}`;
 
         const { error: uploadError } = await supabase.storage
           .from(INSTALLATION_IMAGES_BUCKET)
-          .upload(path, file, { contentType: file.type });
+          .upload(path, readyFile, { contentType: readyFile.type });
 
         if (uploadError) {
           setError(uploadError.message);
@@ -280,8 +271,8 @@ export function InstallationGalleryUploader({ projectId, imageUrls }: GalleryUpl
         </button>
       </form>
       <p className="text-[11px] text-gray-400 dark:text-gray-500">
-        Select multiple files to upload them all at once (up to 10), JPEG, PNG, or WebP, up to 5MB each. Use the
-        arrows to reorder afterward.
+        Select multiple files to upload them all at once (up to 10), JPEG, PNG, or WebP. Large photos are compressed
+        automatically. Use the arrows to reorder afterward.
       </p>
 
       {error && (
