@@ -3,16 +3,19 @@ import { ThemeToggle } from "@/components/settings/ThemeToggle";
 import { InventoryDefaultsForm } from "@/components/settings/InventoryDefaultsForm";
 import { BusinessProfileForm } from "@/components/settings/BusinessProfileForm";
 import { LogoUploadForm } from "@/components/settings/LogoUploadForm";
+import { HeroImagesManager } from "@/components/settings/HeroImagesManager";
 import { BranchList } from "@/components/settings/BranchList";
 import { getThemePreference } from "@/lib/theme";
 import { getAppSettings } from "@/lib/settings";
+import { getHeroImages } from "@/lib/heroImages";
 import { getBranches } from "@/lib/branches";
 import { getCurrentUser } from "@/lib/auth";
 
 export default async function SettingsPage() {
-  const [themePreference, appSettings, branches, user] = await Promise.all([
+  const [themePreference, appSettings, heroImages, branches, user] = await Promise.all([
     getThemePreference(),
     getAppSettings(),
+    getHeroImages(),
     getBranches(),
     getCurrentUser(),
   ]);
@@ -59,6 +62,21 @@ export default async function SettingsPage() {
             <div className="mt-3">
               <LogoUploadForm logoUrl={appSettings.logoUrl} />
             </div>
+          </div>
+        </section>
+      )}
+
+      {isAdmin && (
+        <section className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            Homepage Background Photos
+          </h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Photos shown behind the website&apos;s homepage headline, rotating in the order
+            below. Admin-only.
+          </p>
+          <div className="mt-4">
+            <HeroImagesManager images={heroImages} />
           </div>
         </section>
       )}
