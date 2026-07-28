@@ -268,56 +268,23 @@ export async function updateProductWebsiteDetails(
   return { error: null, success: true };
 }
 
-const ALLOWED_PRODUCT_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_PRODUCT_IMAGE_BYTES = 5 * 1024 * 1024;
+// The file bytes themselves are uploaded to Supabase Storage directly
+// from the browser (see ProductImageUploader.tsx), NOT proxied through
+// these Server Actions -- a Server Action's request body goes through
+// Vercel's serverless function pipeline, which hard-caps request bodies
+// at 4.5MB no matter what Next.js is configured to allow, well under
+// this bucket's own 5MB per-file limit. These actions only ever receive
+// a short URL string after the browser has already uploaded the file
+// straight to Storage, so they stay tiny no matter the image size.
 
-function extensionFor(file: File): string {
-  if (file.type === "image/png") return "png";
-  if (file.type === "image/webp") return "webp";
-  return "jpg";
-}
-
-function validateImageFile(file: FormDataEntryValue | null): { error: string } | { file: File } {
-  if (!(file instanceof File) || file.size === 0) {
-    return { error: "Choose an image file to upload." };
-  }
-  if (!ALLOWED_PRODUCT_IMAGE_TYPES.includes(file.type)) {
-    return { error: "Images must be JPEG, PNG, or WebP." };
-  }
-  if (file.size > MAX_PRODUCT_IMAGE_BYTES) {
-    return { error: "Images must be 5MB or smaller." };
-  }
-  return { file };
-}
-
-export async function uploadProductMainImage(
+export async function saveProductMainImageUrl(
   productId: string,
-  _prevState: WebsiteDetailsFormState,
-  formData: FormData,
+  imageUrl: string,
 ): Promise<WebsiteDetailsFormState> {
-  const validated = validateImageFile(formData.get("mainImage"));
-  if ("error" in validated) return { error: validated.error };
-
-  const supabase = await createClient();
-  // Fixed path per product (upsert), same technique as the branding logo
-  // (0020_logo_upload.sql) -- replacing the main image never leaves an
-  // orphaned old file behind under a different extension.
-  const path = `${productId}/main.${extensionFor(validated.file)}`;
-
-  const { error: uploadError } = await supabase.storage
-    .from("product-images")
-    .upload(path, validated.file, { upsert: true, contentType: validated.file.type });
-
-  if (uploadError) {
-    return { error: uploadError.message };
-  }
-
-  const { data: publicUrlData } = supabase.storage.from("product-images").getPublicUrl(path);
-
   const current = await currentWebsiteDetails(productId);
   const { error } = await callUpdateWebsiteDetails(productId, {
     ...current,
-    productImageUrl: publicUrlData.publicUrl,
+    productImageUrl: imageUrl,
   });
 
   if (error) {
@@ -344,35 +311,16 @@ export async function removeProductMainImage(productId: string): Promise<void> {
   revalidatePath(`/dashboard/inventory/${productId}/edit`);
 }
 
-export async function uploadProductGalleryImage(
+export async function addProductGalleryImageUrls(
   productId: string,
-  _prevState: WebsiteDetailsFormState,
-  formData: FormData,
+  imageUrls: string[],
 ): Promise<WebsiteDetailsFormState> {
-  const validated = validateImageFile(formData.get("galleryImage"));
-  if ("error" in validated) return { error: validated.error };
-
-  const supabase = await createClient();
-  // Unique filename per gallery upload (timestamp + random suffix), unlike
-  // the main image's fixed path -- a product can have many gallery images
-  // at once, so each needs its own object.
-  const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const path = `${productId}/gallery/${uniqueSuffix}.${extensionFor(validated.file)}`;
-
-  const { error: uploadError } = await supabase.storage
-    .from("product-images")
-    .upload(path, validated.file, { contentType: validated.file.type });
-
-  if (uploadError) {
-    return { error: uploadError.message };
-  }
-
-  const { data: publicUrlData } = supabase.storage.from("product-images").getPublicUrl(path);
+  if (imageUrls.length === 0) return { error: "Choose at least one image file to upload." };
 
   const current = await currentWebsiteDetails(productId);
   const { error } = await callUpdateWebsiteDetails(productId, {
     ...current,
-    galleryImageUrls: [...current.galleryImageUrls, publicUrlData.publicUrl],
+    galleryImageUrls: [...current.galleryImageUrls, ...imageUrls],
   });
 
   if (error) {
