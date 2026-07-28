@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { getBranches } from "@/lib/branches";
 import { getCurrentUser } from "@/lib/auth";
@@ -18,6 +19,13 @@ export default async function DashboardLayout({
     getUnreadNotificationCount(),
     getAppSettings(),
   ]);
+
+  // proxy.ts only checks for a valid session (any signed-in customer or
+  // staff account), not an actual staff profile -- getCurrentUser() is the
+  // one place that distinguishes them, so this is the real gate.
+  if (!user) {
+    redirect("/login");
+  }
 
   return (
     <DashboardShell
