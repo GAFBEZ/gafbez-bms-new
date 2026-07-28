@@ -32,6 +32,10 @@ const inputClasses =
   "w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30";
 const labelClasses = "mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300";
 
+function slugify(value: string): string {
+  return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
 export function ProductWebsiteDetailsForm({ product }: ProductWebsiteDetailsFormProps) {
   const { website } = product;
   const updateWithId = updateProductWebsiteDetails.bind(null, product.id);
@@ -44,6 +48,20 @@ export function ProductWebsiteDetailsForm({ product }: ProductWebsiteDetailsForm
   });
   const specificationsJson = useMemo(() => JSON.stringify(specificationRowsToRecord(specRows)), [specRows]);
   const brandSuggestions = brandSuggestionsForCategory(product.category);
+
+  // Website price/slug have never been set for this product -- pre-fill a
+  // sensible starting point from data that already exists in Inventory
+  // Details (selling price, product name) instead of leaving them blank.
+  // Plain editable defaultValues, computed once: these two values are
+  // never synced back to Inventory Details, and typing over them here has
+  // no effect on cost_price/selling_price/sku.
+  const defaultSlug = website.websiteSlug ?? slugify(product.name);
+  const defaultPrice =
+    website.websitePrice !== null && website.websitePrice !== undefined
+      ? String(website.websitePrice)
+      : product.sellingPrice
+        ? String(product.sellingPrice)
+        : "";
 
   const brandId = useId();
   const modelId = useId();
@@ -111,12 +129,14 @@ export function ProductWebsiteDetailsForm({ product }: ProductWebsiteDetailsForm
               type="number"
               min="0"
               step="0.01"
-              defaultValue={website.websitePrice ?? ""}
+              defaultValue={defaultPrice}
               placeholder="Leave blank to hide the price"
               className={inputClasses}
             />
             <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-              Independent of cost price, BMS selling price, and any future branch price.
+              {website.websitePrice === null || website.websitePrice === undefined
+                ? "Pre-filled from the current selling price -- edit or clear it to hide the price. Independent of cost price and any future branch price."
+                : "Independent of cost price, BMS selling price, and any future branch price."}
             </p>
           </div>
 
@@ -127,12 +147,14 @@ export function ProductWebsiteDetailsForm({ product }: ProductWebsiteDetailsForm
             <input
               id={slugId}
               name="websiteSlug"
-              defaultValue={website.websiteSlug ?? ""}
+              defaultValue={defaultSlug}
               placeholder="e.g. deye-5kva-hybrid-inverter"
               className={inputClasses}
             />
             <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-              Must be unique across all products. Leave blank if not ready yet.
+              {website.websiteSlug
+                ? "Must be unique across all products."
+                : "Pre-filled from the product name -- edit it if you want something different. Must be unique across all products."}
             </p>
           </div>
 
