@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { slugify } from "@/lib/slug";
 
 export interface BranchFormState {
   error: string | null;
@@ -21,14 +22,6 @@ function parseBranchForm(formData: FormData): ParsedBranchForm | null {
   if (status !== "active" && status !== "coming_soon") return null;
 
   return { name, status };
-}
-
-/** Turns "GAFBEZ Energies Kano Branch" into "gafbez-energies-kano-branch". */
-function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
 }
 
 export async function createBranch(

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { slugify } from "@/lib/slug";
 import type { ComboComponentType } from "@/types";
 
 export interface ComboPackageFormState {
@@ -63,7 +64,7 @@ export async function createComboPackage(
   const finalPrice = Number(formData.get("finalPrice"));
   const packageCode = String(formData.get("packageCode") ?? "").trim();
   const name = String(formData.get("name") ?? "").trim();
-  const websiteSlug = String(formData.get("websiteSlug") ?? "").trim();
+  const websiteSlug = slugify(String(formData.get("websiteSlug") ?? "").trim());
 
   if (!components || !packageCode || !name || !websiteSlug || !Number.isFinite(finalPrice) || finalPrice < 0) {
     return { error: FORM_ERROR };
@@ -112,7 +113,7 @@ export async function updateComboPackage(
   const finalPrice = Number(formData.get("finalPrice"));
   const packageCode = String(formData.get("packageCode") ?? "").trim();
   const name = String(formData.get("name") ?? "").trim();
-  const websiteSlug = String(formData.get("websiteSlug") ?? "").trim();
+  const websiteSlug = slugify(String(formData.get("websiteSlug") ?? "").trim());
 
   if (!components || !packageCode || !name || !websiteSlug || !Number.isFinite(finalPrice) || finalPrice < 0) {
     return { error: FORM_ERROR };

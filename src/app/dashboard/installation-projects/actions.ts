@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getInstallationProject } from "@/lib/installationProjects";
+import { slugify } from "@/lib/slug";
 import type { InstallationProject } from "@/types";
 
 export interface InstallationProjectFormState {
@@ -63,7 +64,7 @@ function rpcParams(values: ProjectFieldValues) {
 function fromFormData(formData: FormData): ProjectFieldValues {
   return {
     title: String(formData.get("title") ?? "").trim(),
-    websiteSlug: String(formData.get("websiteSlug") ?? "").trim(),
+    websiteSlug: slugify(String(formData.get("websiteSlug") ?? "").trim()),
     location: String(formData.get("location") ?? ""),
     installationDate: String(formData.get("installationDate") ?? "") || null,
     systemCapacity: String(formData.get("systemCapacity") ?? ""),

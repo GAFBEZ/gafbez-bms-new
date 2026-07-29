@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AlertCircle } from "lucide-react";
 import type { InstallationProject } from "@/types";
 import type { InstallationProjectFormState } from "@/app/dashboard/installation-projects/actions";
+import { slugify } from "@/lib/slug";
 
 interface InstallationProjectFormProps {
   /** Already bound to the project id for an edit form -- see
@@ -23,14 +24,6 @@ const initialState: InstallationProjectFormState = { error: null };
 const inputClasses =
   "w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30";
 const labelClasses = "mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300";
-
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
 
 /** Owner/Manager only in practice (create_installation_project/
  * update_installation_project both raise for anyone else via

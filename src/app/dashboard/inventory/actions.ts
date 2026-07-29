@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getProduct } from "@/lib/products";
+import { slugify } from "@/lib/slug";
 import type { ProductWebsiteDetails } from "@/types";
 
 export interface ProductFormState {
@@ -210,7 +211,12 @@ export async function updateProductWebsiteDetails(
   const fullDescription = String(formData.get("fullDescription") ?? "").trim() || null;
   const websitePriceRaw = String(formData.get("websitePrice") ?? "").trim();
   const websitePrice = websitePriceRaw === "" ? null : Number(websitePriceRaw);
-  const websiteSlug = String(formData.get("websiteSlug") ?? "").trim() || null;
+  // Slugified server-side rather than trusting the submitted string as-is
+  // -- the form pre-fills a slugified default, but staff can still type
+  // over it (or old data predating that default can already be
+  // non-slug-shaped), and a raw value like "Cworth 15kW Lithium Battery"
+  // breaks the product's own /shop/[slug] page.
+  const websiteSlug = slugify(String(formData.get("websiteSlug") ?? "").trim()) || null;
   const warrantyText = String(formData.get("warrantyText") ?? "").trim() || null;
   const isVisibleOnWebsite = formData.get("isVisibleOnWebsite") === "on";
   const isFeaturedOnWebsite = formData.get("isFeaturedOnWebsite") === "on";

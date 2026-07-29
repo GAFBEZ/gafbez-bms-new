@@ -21,6 +21,7 @@ import {
   brandSuggestionsForCategory,
   specificationTemplateForCategory,
 } from "@/lib/websiteCatalogueOptions";
+import { slugify } from "@/lib/slug";
 
 interface ProductWebsiteDetailsFormProps {
   product: Product;
@@ -31,10 +32,6 @@ const initialState: WebsiteDetailsFormState = { error: null };
 const inputClasses =
   "w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30";
 const labelClasses = "mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300";
-
-function slugify(value: string): string {
-  return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-}
 
 export function ProductWebsiteDetailsForm({ product }: ProductWebsiteDetailsFormProps) {
   const { website } = product;
