@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Pencil, Search } from "lucide-react";
 import { DeleteProductButton } from "@/components/inventory/DeleteProductButton";
+import { SpecialOrderQuantityEditor } from "@/components/inventory/SpecialOrderQuantityEditor";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { formatCurrency } from "@/lib/format";
 import type { Product } from "@/types";
@@ -11,9 +12,14 @@ import type { Product } from "@/types";
 interface ProductTableProps {
   products: Product[];
   canDelete: boolean;
+  /** Special-order quantity is branch-specific and only shown/editable
+   * against a real branch, same rule quantityInStock itself already
+   * follows for the "all branches" aggregate view. */
+  branchId: string;
 }
 
-export function ProductTable({ products, canDelete }: ProductTableProps) {
+export function ProductTable({ products, canDelete, branchId }: ProductTableProps) {
+  const showSpecialOrder = branchId !== "all";
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
 
@@ -170,6 +176,21 @@ export function ProductTable({ products, canDelete }: ProductTableProps) {
                       <dt className="text-xs text-gray-400 dark:text-gray-500">Supplier</dt>
                       <dd className="text-gray-700 dark:text-gray-300">{product.supplier ?? "—"}</dd>
                     </div>
+                    {showSpecialOrder && (
+                      <div className="col-span-2">
+                        <dt className="text-xs text-gray-400 dark:text-gray-500">
+                          Special Order Qty (no physical stock needed)
+                        </dt>
+                        <dd className="mt-1">
+                          <SpecialOrderQuantityEditor
+                            productId={product.id}
+                            branchId={branchId}
+                            productName={product.name}
+                            initialValue={product.specialOrderQuantity}
+                          />
+                        </dd>
+                      </div>
+                    )}
                   </dl>
 
                   <div className="mt-3 flex items-center gap-1 border-t border-gray-100 dark:border-gray-800 pt-3">
@@ -215,6 +236,11 @@ export function ProductTable({ products, canDelete }: ProductTableProps) {
                 <th scope="col" className="px-4 py-3 font-medium">
                   Reorder Level
                 </th>
+                {showSpecialOrder && (
+                  <th scope="col" className="px-4 py-3 font-medium">
+                    Special Order Qty
+                  </th>
+                )}
                 <th scope="col" className="px-4 py-3 font-medium">
                   Status
                 </th>
@@ -278,6 +304,16 @@ export function ProductTable({ products, canDelete }: ProductTableProps) {
                     <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
                       {product.reorderLevel} {product.unit}
                     </td>
+                    {showSpecialOrder && (
+                      <td className="px-4 py-3">
+                        <SpecialOrderQuantityEditor
+                          productId={product.id}
+                          branchId={branchId}
+                          productName={product.name}
+                          initialValue={product.specialOrderQuantity}
+                        />
+                      </td>
+                    )}
                     <td className="px-4 py-3">
                       <span
                         className={

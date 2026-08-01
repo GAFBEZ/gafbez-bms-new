@@ -13,19 +13,35 @@ export default async function SalesCataloguePage() {
   // inspectable or not.
   const activeProducts = products
     .filter((product) => product.isActive)
-    .map(({ id, sku, name, category, unit, sellingPrice, quantityInStock, reorderLevel, isActive, createdAt, updatedAt }) => ({
-      id,
-      sku,
-      name,
-      category,
-      unit,
-      sellingPrice,
-      quantityInStock,
-      reorderLevel,
-      isActive,
-      createdAt,
-      updatedAt,
-    }));
+    .map(
+      ({
+        id,
+        sku,
+        name,
+        category,
+        unit,
+        sellingPrice,
+        quantityInStock,
+        specialOrderQuantity,
+        reorderLevel,
+        isActive,
+        createdAt,
+        updatedAt,
+      }) => ({
+        id,
+        sku,
+        name,
+        category,
+        unit,
+        sellingPrice,
+        quantityInStock,
+        specialOrderQuantity,
+        reorderLevel,
+        isActive,
+        createdAt,
+        updatedAt,
+      }),
+    );
   const activeBranchName = branches.find((b) => b.id === activeBranchId)?.name;
 
   return (

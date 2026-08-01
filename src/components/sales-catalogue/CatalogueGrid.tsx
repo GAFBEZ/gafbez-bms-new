@@ -12,6 +12,9 @@ interface CatalogueGridProps {
 
 function stockStatus(product: Omit<Product, "costPrice" | "supplier" | "website">): { label: string; className: string } {
   if (product.quantityInStock === 0) {
+    if (product.specialOrderQuantity) {
+      return { label: "Special order", className: "bg-brand-gold-soft text-brand-gold dark:text-amber-400" };
+    }
     return { label: "Out of stock", className: "bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400" };
   }
   if (product.quantityInStock <= product.reorderLevel) {
@@ -130,6 +133,9 @@ export function CatalogueGrid({ products }: CatalogueGridProps) {
                   </p>
                   <p className="text-xs text-gray-400 dark:text-gray-500">
                     {product.quantityInStock} {product.unit} available
+                    {product.quantityInStock === 0 && product.specialOrderQuantity
+                      ? ` (up to ${product.specialOrderQuantity} by special order)`
+                      : ""}
                   </p>
                 </div>
               </div>

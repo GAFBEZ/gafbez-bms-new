@@ -360,3 +360,30 @@ function extractProductImagesPath(publicUrl: string): string | null {
   if (index === -1) return null;
   return decodeURIComponent(publicUrl.slice(index + marker.length));
 }
+
+export interface SpecialOrderQuantityFormState {
+  error: string | null;
+}
+
+/** Sets how many units of a product the branch can sell right now without
+ * physical stock backing it (0036_special_order_quantity.sql) -- entirely
+ * separate from quantityInStock, never touches it, so Inventory Master's
+ * totals stay accurate. Pass null to clear it back to "no special-order
+ * availability". set_special_order_quantity itself enforces admin-only. */
+export async function setSpecialOrderQuantity(
+  productId: string,
+  branchId: string,
+  quantity: number | null,
+): Promise<SpecialOrderQuantityFormState> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("set_special_order_quantity", {
+    p_product_id: productId,
+    p_branch_id: branchId,
+    p_quantity: quantity,
+  });
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/dashboard/inventory");
+  return { error: null };
+}

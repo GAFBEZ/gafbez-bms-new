@@ -92,6 +92,11 @@ export interface Product {
   costPrice: number;
   sellingPrice: number;
   quantityInStock: number;
+  /** Owner-set "I can get this many quickly" override, independent of
+   * quantityInStock -- see 0036_special_order_quantity.sql. Only
+   * meaningful for a specific branch; always null in the "all branches"
+   * view, same as quantityInStock's own branch-scoping rule. */
+  specialOrderQuantity: number | null;
   reorderLevel: number;
   supplier: string | null;
   isActive: boolean;

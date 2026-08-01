@@ -91,7 +91,7 @@ export default async function InventoryMasterPage() {
         />
       </div>
 
-      <ProductTable products={products} canDelete />
+      <ProductTable products={products} canDelete branchId={activeBranchId} />
     </div>
   );
 }

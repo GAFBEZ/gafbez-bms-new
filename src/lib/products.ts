@@ -30,7 +30,7 @@ interface ProductRow {
   website_display_order: number;
   is_combo_eligible: boolean;
   calculator_eligible: boolean;
-  product_stock?: { quantity: number }[];
+  product_stock?: { quantity: number; special_order_quantity: number | null }[];
 }
 
 const PRODUCT_COLUMNS =
@@ -59,6 +59,7 @@ function mapWebsiteDetails(row: ProductRow): ProductWebsiteDetails {
 function mapRow(row: ProductRow, branchId: string): Product {
   const branchQuantity =
     branchId === "all" ? row.quantity_in_stock : (row.product_stock?.[0]?.quantity ?? 0);
+  const specialOrderQuantity = branchId === "all" ? null : (row.product_stock?.[0]?.special_order_quantity ?? null);
 
   return {
     id: row.id,
@@ -69,6 +70,7 @@ function mapRow(row: ProductRow, branchId: string): Product {
     costPrice: Number(row.cost_price),
     sellingPrice: Number(row.selling_price),
     quantityInStock: branchQuantity,
+    specialOrderQuantity,
     reorderLevel: row.reorder_level,
     supplier: row.supplier,
     isActive: row.is_active,
@@ -89,7 +91,7 @@ export async function getProducts(branchId: string = "all"): Promise<Product[]> 
   const supabase = await createClient();
   let query = supabase
     .from("products")
-    .select(branchId === "all" ? PRODUCT_COLUMNS : `${PRODUCT_COLUMNS}, product_stock(quantity)`)
+    .select(branchId === "all" ? PRODUCT_COLUMNS : `${PRODUCT_COLUMNS}, product_stock(quantity, special_order_quantity)`)
     .order("name");
 
   if (branchId !== "all") {
