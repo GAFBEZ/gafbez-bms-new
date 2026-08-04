@@ -86,26 +86,59 @@ function mapRow(row: ProductRow, branchId: string): Product {
  * 0018_per_branch_stock.sql). Any other branch id returns that branch's
  * real quantity from product_stock instead, defaulting to 0 if the
  * product has no stock at that branch at all.
+ *
+ * Deliberately two flat queries merged in JS rather than one PostgREST
+ * embedded-resource select (`product_stock(...)` nested inside `products`,
+ * filtered via `.eq("product_stock.branch_id", ...)`) -- that embedded
+ * form was intermittently failing in production with "stack depth limit
+ * exceeded" / statement timeouts for non-admin sessions once both
+ * `products` and `product_stock` picked up is_staff()-based RLS (0033),
+ * even though the equivalent plain SQL join runs fine. Two simple
+ * single-table queries sidestep whatever RLS-on-embedded-resource
+ * interaction was causing that, and are just as cheap for a catalogue this
+ * size.
  */
 export async function getProducts(branchId: string = "all"): Promise<Product[]> {
   const supabase = await createClient();
-  let query = supabase
+
+  const { data: products, error } = await supabase
     .from("products")
-    .select(branchId === "all" ? PRODUCT_COLUMNS : `${PRODUCT_COLUMNS}, product_stock(quantity, special_order_quantity)`)
+    .select(PRODUCT_COLUMNS)
     .order("name");
 
-  if (branchId !== "all") {
-    query = query.eq("product_stock.branch_id", branchId);
-  }
-
-  const { data, error } = await query;
-
-  if (error || !data) {
+  if (error || !products) {
     console.warn("Failed to load products:", error?.message);
     return [];
   }
 
-  return (data as unknown as ProductRow[]).map((row) => mapRow(row, branchId));
+  const productRows = products as unknown as ProductRow[];
+
+  if (branchId === "all") {
+    return productRows.map((row) => mapRow(row, branchId));
+  }
+
+  const { data: stockRows, error: stockError } = await supabase
+    .from("product_stock")
+    .select("product_id, quantity, special_order_quantity")
+    .eq("branch_id", branchId);
+
+  if (stockError) {
+    console.warn("Failed to load product stock:", stockError.message);
+  }
+
+  const stockByProductId = new Map(
+    (stockRows ?? []).map((row) => [
+      row.product_id as string,
+      { quantity: row.quantity as number, special_order_quantity: row.special_order_quantity as number | null },
+    ]),
+  );
+
+  return productRows.map((row) =>
+    mapRow(
+      { ...row, product_stock: stockByProductId.has(row.id) ? [stockByProductId.get(row.id)!] : [] },
+      branchId,
+    ),
+  );
 }
 
 export async function getProduct(id: string): Promise<Product | null> {
