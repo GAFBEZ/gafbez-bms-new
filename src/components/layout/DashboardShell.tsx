@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { Header } from "@/components/layout/Header";
+import { IdleLogout } from "@/components/layout/IdleLogout";
 import type { Branch } from "@/types";
 import type { CurrentUser } from "@/lib/auth";
 
@@ -32,6 +33,7 @@ export function DashboardShell({
 
   return (
     <div className="flex min-h-screen bg-page">
+      <IdleLogout />
       <Sidebar
         isAdmin={isAdmin}
         canManageInstallationProjects={canManageInstallationProjects}
