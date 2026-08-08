@@ -3,7 +3,7 @@
 import { useActionState, useId, useState } from "react";
 import { AlertCircle, Lock, Mail } from "lucide-react";
 import { Logo } from "@/components/layout/Logo";
-import { signIn, type LoginState } from "./actions";
+import { signIn, requestPasswordReset, type LoginState, type ForgotPasswordState } from "./actions";
 
 interface LoginFormProps {
   businessName: string;
@@ -14,6 +14,7 @@ interface LoginFormProps {
 }
 
 const initialState: LoginState = { error: null };
+const initialForgotState: ForgotPasswordState = { status: "idle" };
 
 export function LoginForm({
   businessName,
@@ -26,10 +27,15 @@ export function LoginForm({
     signIn,
     initialState,
   );
-  const [forgotPasswordClicked, setForgotPasswordClicked] = useState(false);
+  const [forgotState, forgotAction, isSendingReset] = useActionState(
+    requestPasswordReset,
+    initialForgotState,
+  );
+  const [mode, setMode] = useState<"signin" | "forgot">("signin");
 
   const emailId = useId();
   const passwordId = useId();
+  const forgotEmailId = useId();
 
   const contactLine = [businessAddress, businessPhone, businessEmail]
     .filter(Boolean)
@@ -49,93 +55,155 @@ export function LoginForm({
             </p>
           </div>
 
-          <form action={formAction} className="mt-6 flex flex-col gap-4">
-            <div>
-              <label
-                htmlFor={emailId}
-                className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Email address
-              </label>
-              <div className="relative">
-                <Mail
-                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500"
-                  aria-hidden="true"
-                />
-                <input
-                  id={emailId}
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  placeholder="you@gafbezenergies.com"
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 py-2.5 pl-10 pr-3 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30"
-                />
+          {mode === "signin" ? (
+            <form action={formAction} className="mt-6 flex flex-col gap-4">
+              <div>
+                <label
+                  htmlFor={emailId}
+                  className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Email address
+                </label>
+                <div className="relative">
+                  <Mail
+                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500"
+                    aria-hidden="true"
+                  />
+                  <input
+                    id={emailId}
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    placeholder="you@gafbezenergies.com"
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 py-2.5 pl-10 pr-3 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label
-                htmlFor={passwordId}
-                className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Password
-              </label>
-              <div className="relative">
-                <Lock
-                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500"
-                  aria-hidden="true"
-                />
-                <input
-                  id={passwordId}
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  placeholder="••••••••"
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 py-2.5 pl-10 pr-3 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30"
-                />
+              <div>
+                <label
+                  htmlFor={passwordId}
+                  className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock
+                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500"
+                    aria-hidden="true"
+                  />
+                  <input
+                    id={passwordId}
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    placeholder="••••••••"
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 py-2.5 pl-10 pr-3 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="flex justify-end">
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setMode("forgot")}
+                  className="text-xs font-medium text-brand-green dark:text-emerald-400 hover:underline focus:outline-none"
+                >
+                  Forgot password?
+                </button>
+              </div>
+
+              {state.error && (
+                <p
+                  className="flex items-start gap-2 rounded-lg bg-red-50 dark:bg-red-950/40 px-3 py-2 text-xs text-red-700 dark:text-red-400"
+                  role="alert"
+                >
+                  <AlertCircle
+                    className="mt-0.5 h-3.5 w-3.5 shrink-0"
+                    aria-hidden="true"
+                  />
+                  {state.error}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={isPending}
+                className="mt-2 w-full rounded-lg bg-brand-green py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-green-dark focus:outline-none focus:ring-2 focus:ring-brand-green/40 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isPending ? "Signing in…" : "Sign In"}
+              </button>
+            </form>
+          ) : forgotState.status === "success" ? (
+            <div className="mt-6 flex flex-col items-center gap-4 text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-300">{forgotState.message}</p>
               <button
                 type="button"
-                onClick={() => setForgotPasswordClicked(true)}
+                onClick={() => setMode("signin")}
                 className="text-xs font-medium text-brand-green dark:text-emerald-400 hover:underline focus:outline-none"
               >
-                Forgot password?
+                Back to sign in
               </button>
             </div>
-
-            {forgotPasswordClicked && (
-              <p className="-mt-2 text-xs text-gray-500 dark:text-gray-400" role="status">
-                Password recovery isn&apos;t wired up yet — contact an
-                administrator to reset your password for now.
+          ) : (
+            <form action={forgotAction} className="mt-6 flex flex-col gap-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Enter your account email and we&apos;ll send a link to reset your password.
               </p>
-            )}
 
-            {state.error && (
-              <p
-                className="flex items-start gap-2 rounded-lg bg-red-50 dark:bg-red-950/40 px-3 py-2 text-xs text-red-700 dark:text-red-400"
-                role="alert"
+              <div>
+                <label
+                  htmlFor={forgotEmailId}
+                  className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Email address
+                </label>
+                <div className="relative">
+                  <Mail
+                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500"
+                    aria-hidden="true"
+                  />
+                  <input
+                    id={forgotEmailId}
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    placeholder="you@gafbezenergies.com"
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 py-2.5 pl-10 pr-3 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30"
+                  />
+                </div>
+              </div>
+
+              {forgotState.status === "error" && (
+                <p
+                  className="flex items-start gap-2 rounded-lg bg-red-50 dark:bg-red-950/40 px-3 py-2 text-xs text-red-700 dark:text-red-400"
+                  role="alert"
+                >
+                  <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  {forgotState.message}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={isSendingReset}
+                className="mt-2 w-full rounded-lg bg-brand-green py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-green-dark focus:outline-none focus:ring-2 focus:ring-brand-green/40 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <AlertCircle
-                  className="mt-0.5 h-3.5 w-3.5 shrink-0"
-                  aria-hidden="true"
-                />
-                {state.error}
-              </p>
-            )}
+                {isSendingReset ? "Sending…" : "Send Reset Link"}
+              </button>
 
-            <button
-              type="submit"
-              disabled={isPending}
-              className="mt-2 w-full rounded-lg bg-brand-green py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-green-dark focus:outline-none focus:ring-2 focus:ring-brand-green/40 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isPending ? "Signing in…" : "Sign In"}
-            </button>
-          </form>
+              <button
+                type="button"
+                onClick={() => setMode("signin")}
+                className="text-xs font-medium text-brand-green dark:text-emerald-400 hover:underline focus:outline-none"
+              >
+                Back to sign in
+              </button>
+            </form>
+          )}
         </div>
 
         <p className="mt-6 text-center text-xs text-white/60">
