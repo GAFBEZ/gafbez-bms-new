@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getWebsiteUrl } from "@/lib/site";
+import { checkLoginRateLimit, checkPasswordResetRateLimit } from "@/lib/rateLimit";
 
 export interface LoginState {
   error: string | null;
@@ -33,6 +34,10 @@ export async function requestPasswordReset(
     return { status: "error", message: "Enter a valid email address." };
   }
 
+  if (!(await checkPasswordResetRateLimit(email))) {
+    return { status: "error", message: "Too many requests. Please wait a few minutes and try again." };
+  }
+
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${getWebsiteUrl()}/auth/confirm?next=${encodeURIComponent("/reset-password")}`,
@@ -60,6 +65,10 @@ export async function signIn(
 
   if (!email || !password) {
     return { error: "Enter both your email address and password." };
+  }
+
+  if (!(await checkLoginRateLimit(email))) {
+    return { error: "Too many login attempts. Please wait a few minutes and try again." };
   }
 
   const supabase = await createClient();
