@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth";
 import { getProduct } from "@/lib/products";
 import { slugify } from "@/lib/slug";
 import type { ProductWebsiteDetails } from "@/types";
@@ -121,7 +122,17 @@ export async function updateProduct(
   redirect("/dashboard/inventory");
 }
 
+// Inventory Master is an admin-only page (see dashboard/inventory/page.tsx)
+// -- this backs that up in the action itself in case RLS is ever
+// misconfigured, rather than trusting the page-level redirect alone to
+// keep a non-admin from calling this action directly.
 export async function deleteProduct(id: string): Promise<void> {
+  const user = await getCurrentUser();
+  if (user?.role !== "admin") {
+    console.warn(`[deleteProduct] blocked non-admin delete attempt by user ${user?.id ?? "unknown"}`);
+    return;
+  }
+
   const supabase = await createClient();
   await supabase.from("products").delete().eq("id", id);
   revalidatePath("/dashboard/inventory");

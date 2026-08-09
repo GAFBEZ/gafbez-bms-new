@@ -42,7 +42,16 @@ export async function updateStaffMember(
     return { error: "Choose a valid role." };
   }
 
+  // The whole /dashboard/staff-management page is admin-only (see
+  // staff-management/page.tsx) -- this backs that up in the action
+  // itself in case RLS is ever misconfigured, rather than trusting the
+  // page-level redirect alone to keep a non-admin from calling this
+  // action directly to change someone else's role.
   const currentUser = await getCurrentUser();
+  if (currentUser?.role !== "admin") {
+    return { error: "Admins only. Contact an administrator if you need this change made." };
+  }
+
   if (currentUser?.id === id && (parsed.role !== "admin" || !parsed.isActive)) {
     return {
       error: "You can't remove your own admin access or deactivate yourself. Have another admin make this change.",

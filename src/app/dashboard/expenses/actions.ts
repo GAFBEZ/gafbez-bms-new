@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth";
 
 export interface ExpenseFormState {
   error: string | null;
@@ -97,7 +98,17 @@ export async function updateExpense(
   redirect("/dashboard/expenses");
 }
 
+// Deleting an expense is admin-only in the UI (ExpenseTable's canDelete
+// prop) -- this backs that up in the action itself in case RLS is ever
+// misconfigured, rather than trusting the UI gate alone to keep a
+// non-admin from calling this action directly.
 export async function deleteExpense(id: string): Promise<void> {
+  const user = await getCurrentUser();
+  if (user?.role !== "admin") {
+    console.warn(`[deleteExpense] blocked non-admin delete attempt by user ${user?.id ?? "unknown"}`);
+    return;
+  }
+
   const supabase = await createClient();
   await supabase.from("expenses").delete().eq("id", id);
   revalidatePath("/dashboard/expenses");

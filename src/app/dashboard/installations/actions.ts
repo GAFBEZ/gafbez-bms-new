@@ -119,6 +119,11 @@ function toRow(parsed: ParsedInstallationForm) {
 const FORM_ERROR =
   "Fill in the branch and date, and make sure every price/amount field is zero or greater.";
 
+// The whole /dashboard/installations page is admin-only (see
+// installations/page.tsx) -- these checks back that up in each action
+// itself in case RLS is ever misconfigured, rather than trusting the
+// page-level redirect alone to keep a non-admin from calling one of
+// these actions directly.
 export async function createInstallation(
   _prevState: InstallationFormState,
   formData: FormData,
@@ -127,6 +132,9 @@ export async function createInstallation(
   if (!parsed) return { error: FORM_ERROR };
 
   const [supabase, user] = await Promise.all([createClient(), getCurrentUser()]);
+  if (user?.role !== "admin") {
+    return { error: "Admins only. Contact an administrator if you need this change made." };
+  }
 
   const { error } = await supabase.from("installations").insert({
     ...toRow(parsed),
@@ -150,6 +158,11 @@ export async function updateInstallation(
   const parsed = parseInstallationForm(formData);
   if (!parsed) return { error: FORM_ERROR };
 
+  const user = await getCurrentUser();
+  if (user?.role !== "admin") {
+    return { error: "Admins only. Contact an administrator if you need this change made." };
+  }
+
   const supabase = await createClient();
   const { error } = await supabase.from("installations").update(toRow(parsed)).eq("id", id);
 
@@ -163,6 +176,12 @@ export async function updateInstallation(
 }
 
 export async function deleteInstallation(id: string): Promise<void> {
+  const user = await getCurrentUser();
+  if (user?.role !== "admin") {
+    console.warn(`[deleteInstallation] blocked non-admin delete attempt by user ${user?.id ?? "unknown"}`);
+    return;
+  }
+
   const supabase = await createClient();
   await supabase.from("installations").delete().eq("id", id);
   revalidatePath("/dashboard/installations");

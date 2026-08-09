@@ -60,7 +60,17 @@ export async function uploadDocument(
   return { error: null, success: true };
 }
 
+// Deleting a document is admin-only in the UI (DocumentList's canDelete
+// prop) -- this backs that up in the action itself in case RLS is ever
+// misconfigured, rather than trusting the UI gate alone to keep a
+// non-admin from calling this action directly.
 export async function deleteDocument(id: string, storagePath: string): Promise<void> {
+  const user = await getCurrentUser();
+  if (user?.role !== "admin") {
+    console.warn(`[deleteDocument] blocked non-admin delete attempt by user ${user?.id ?? "unknown"}`);
+    return;
+  }
+
   const supabase = await createClient();
   await supabase.storage.from(DOCUMENTS_BUCKET).remove([storagePath]);
   await supabase.from("documents").delete().eq("id", id);
