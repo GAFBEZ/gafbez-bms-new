@@ -18,7 +18,7 @@ interface RefundResult {
   reference: string;
 }
 
-function isValidRefundResponse(body: unknown): body is { status: boolean; data: { status: string; transaction: { reference: string } } } {
+export function isValidRefundResponse(body: unknown): body is { status: boolean; data: { status: string; transaction: { reference: string } } } {
   if (!body || typeof body !== "object") return false;
   const candidate = body as Record<string, unknown>;
   if (typeof candidate.status !== "boolean" || !candidate.data || typeof candidate.data !== "object") return false;

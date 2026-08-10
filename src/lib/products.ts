@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Product, ProductWebsiteDetails } from "@/types";
 
-interface ProductRow {
+export interface ProductRow {
   id: string;
   sku: string;
   name: string;
@@ -56,7 +56,7 @@ function mapWebsiteDetails(row: ProductRow): ProductWebsiteDetails {
   };
 }
 
-function mapRow(row: ProductRow, branchId: string): Product {
+export function mapRow(row: ProductRow, branchId: string): Product {
   const branchQuantity =
     branchId === "all" ? row.quantity_in_stock : (row.product_stock?.[0]?.quantity ?? 0);
   const specialOrderQuantity = branchId === "all" ? null : (row.product_stock?.[0]?.special_order_quantity ?? null);
