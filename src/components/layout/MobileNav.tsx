@@ -10,10 +10,11 @@ interface MobileNavProps {
   onClose: () => void;
   isAdmin: boolean;
   canManageInstallationProjects: boolean;
+  canReviewInstallerApplications: boolean;
   logoUrl: string | null;
 }
 
-export function MobileNav({ open, onClose, isAdmin, canManageInstallationProjects, logoUrl }: MobileNavProps) {
+export function MobileNav({ open, onClose, isAdmin, canManageInstallationProjects, canReviewInstallerApplications, logoUrl }: MobileNavProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -58,7 +59,12 @@ export function MobileNav({ open, onClose, isAdmin, canManageInstallationProject
           </button>
         </div>
         <div className="flex-1 overflow-y-auto px-3 py-4">
-          <NavList onNavigate={onClose} isAdmin={isAdmin} canManageInstallationProjects={canManageInstallationProjects} />
+          <NavList
+            onNavigate={onClose}
+            isAdmin={isAdmin}
+            canManageInstallationProjects={canManageInstallationProjects}
+            canReviewInstallerApplications={canReviewInstallerApplications}
+          />
         </div>
       </div>
     </div>

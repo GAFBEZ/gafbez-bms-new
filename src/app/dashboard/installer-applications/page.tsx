@@ -4,20 +4,26 @@ import { getInstallerApplications } from "@/lib/installerApplications";
 import { getCurrentUser } from "@/lib/auth";
 import InstallerApplicationRow from "@/components/installerApplications/InstallerApplicationRow";
 
-/** Owner/Admin only -- approving an application silently switches that
- * customer's future website orders from products.website_price to
- * products.selling_price (see create_online_order_with_reservation,
- * 0039_installer_accounts.sql), the same financial-control tier as
- * Store Credit and combo package pricing, not a Manager-reviewable queue
- * like Refund Requests. */
+/** Owner/Admin, or a staff member with profiles.can_temp_approve_installers
+ * (0042_installer_temp_approval.sql) -- a permanent approve/reject is
+ * still Owner/Admin only (switches future orders from
+ * products.website_price to products.selling_price, the same
+ * financial-control tier as Store Credit), but a designated trusted
+ * staff member can grant a 72-hour provisional temp-approve so an
+ * installer isn't stuck waiting on a specific person to be online. */
 export default async function InstallerApplicationsPage() {
   const user = await getCurrentUser();
+  const isAdmin = user?.role === "admin";
+  const canTempApprove = isAdmin || Boolean(user?.canTempApproveInstallers);
 
-  if (user?.role !== "admin") {
+  if (!canTempApprove) {
     return (
       <div className="flex flex-col gap-6">
         <PageHeader title="Installer Applications" />
-        <EmptyState title="Owner/Admin only" description="Installer application review is restricted to Owner/Admin accounts." />
+        <EmptyState
+          title="Restricted"
+          description="Installer application review is restricted to Owner/Admin accounts and staff specifically granted temporary-approval access."
+        />
       </div>
     );
   }
@@ -50,7 +56,7 @@ export default async function InstallerApplicationsPage() {
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
               {applications.map((application) => (
-                <InstallerApplicationRow key={application.id} application={application} />
+                <InstallerApplicationRow key={application.id} application={application} canFinalApprove={isAdmin} canTempApprove={canTempApprove} />
               ))}
             </tbody>
           </table>

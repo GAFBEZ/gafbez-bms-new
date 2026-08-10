@@ -83,7 +83,7 @@ export const navItems: NavItem[] = [
     label: "Installer Applications",
     href: "/dashboard/installer-applications",
     icon: HardHat,
-    adminOnly: true,
+    installerReviewAccess: true,
   },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];

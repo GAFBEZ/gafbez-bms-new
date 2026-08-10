@@ -11,6 +11,11 @@ export interface NavItem {
    * public.can_manage_installation_projects() (Stage 8). Distinct from
    * adminOnly, which hides from every non-admin including Managers. */
   managerOrAdmin?: boolean;
+  /** Visible to Owner/Admin or a staff member with
+   * profiles.can_temp_approve_installers set -- see
+   * 0042_installer_temp_approval.sql. Distinct from managerOrAdmin,
+   * which is keyed on a different pair of flags entirely. */
+  installerReviewAccess?: boolean;
 }
 
 export type BranchStatus = "active" | "coming-soon";
@@ -484,13 +489,23 @@ export interface RefundRequest {
   completedAt: string | null;
 }
 
-export type InstallerApplicationStatus = "pending" | "approved" | "rejected";
+export type InstallerApplicationStatus = "pending" | "approved" | "rejected" | "temp_approved";
 
 /** A customer_profiles row where installer_status !== 'none' -- see
- * 0039_installer_accounts.sql and 0040_installer_social_profiles.sql in
- * supabase/migrations. The four url fields are the applicant's
- * self-reported business-presence links (at least 2 required at signup)
- * -- shown here so staff can spot-check legitimacy before approving. */
+ * 0039_installer_accounts.sql, 0040_installer_social_profiles.sql, and
+ * 0042_installer_temp_approval.sql in supabase/migrations. The four url
+ * fields are the applicant's self-reported business-presence links (at
+ * least 2 required at signup) -- shown here so staff can spot-check
+ * legitimacy before approving.
+ *
+ * 'temp_approved' is a provisional grant by a designated trusted staff
+ * member (profiles.can_temp_approve_installers) -- it already unlocks
+ * installer pricing (for 72 hours from installerTempApprovedAt, see
+ * 0042) but still needs an Admin to finalize it via approve/reject.
+ * installerReviewedByName/installerTempApprovedByName are resolved
+ * staff display names (joined in src/lib/installerApplications.ts, not
+ * a DB-level embed -- both *_by columns reference auth.users, not
+ * public.profiles). */
 export interface InstallerApplication {
   id: string;
   fullName: string;
@@ -500,6 +515,9 @@ export interface InstallerApplication {
   installerStatus: InstallerApplicationStatus;
   installerRejectionReason: string | null;
   installerReviewedAt: string | null;
+  installerReviewedByName: string | null;
+  installerTempApprovedAt: string | null;
+  installerTempApprovedByName: string | null;
   createdAt: string;
   tiktokUrl: string | null;
   instagramUrl: string | null;

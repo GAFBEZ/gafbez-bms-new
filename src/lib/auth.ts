@@ -15,6 +15,11 @@ export interface CurrentUser {
   /** Stage 6: Owner-granted permission letting a non-manager branch
    * salesperson act on installation_jobs. */
   canManageInstallations: boolean;
+  /** Owner-granted permission letting this staff member call
+   * temp_approve_installer_application() -- see
+   * 0042_installer_temp_approval.sql. Same "Owner-granted flag, not a
+   * role value" pattern as isBranchManager/canManageInstallations. */
+  canTempApproveInstallers: boolean;
 }
 
 /**
@@ -43,7 +48,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, role, is_active, branch_id, is_branch_manager, can_manage_installations")
+    .select("full_name, role, is_active, branch_id, is_branch_manager, can_manage_installations, can_temp_approve_installers")
     .eq("id", claims.sub)
     .maybeSingle();
 
@@ -58,5 +63,6 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     branchId: profile.branch_id,
     isBranchManager: profile.is_branch_manager,
     canManageInstallations: profile.can_manage_installations,
+    canTempApproveInstallers: profile.can_temp_approve_installers,
   };
 });

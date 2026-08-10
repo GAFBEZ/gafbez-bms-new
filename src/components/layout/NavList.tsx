@@ -8,12 +8,16 @@ interface NavListProps {
   onNavigate?: () => void;
   isAdmin: boolean;
   canManageInstallationProjects: boolean;
+  canReviewInstallerApplications: boolean;
 }
 
-export function NavList({ onNavigate, isAdmin, canManageInstallationProjects }: NavListProps) {
+export function NavList({ onNavigate, isAdmin, canManageInstallationProjects, canReviewInstallerApplications }: NavListProps) {
   const pathname = usePathname();
   const visibleItems = navItems.filter(
-    (item) => (!item.adminOnly || isAdmin) && (!item.managerOrAdmin || canManageInstallationProjects),
+    (item) =>
+      (!item.adminOnly || isAdmin) &&
+      (!item.managerOrAdmin || canManageInstallationProjects) &&
+      (!item.installerReviewAccess || canReviewInstallerApplications),
   );
 
   return (

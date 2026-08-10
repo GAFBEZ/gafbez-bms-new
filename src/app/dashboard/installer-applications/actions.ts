@@ -7,6 +7,13 @@ function revalidate() {
   revalidatePath("/dashboard/installer-applications");
 }
 
+export async function tempApproveInstallerApplication(customerId: string): Promise<{ error: string | null }> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("temp_approve_installer_application", { p_customer_id: customerId });
+  revalidate();
+  return { error: error?.message ?? null };
+}
+
 export async function approveInstallerApplication(customerId: string): Promise<{ error: string | null }> {
   const supabase = await createClient();
   const { error } = await supabase.rpc("approve_installer_application", { p_customer_id: customerId });
