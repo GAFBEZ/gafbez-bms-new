@@ -491,6 +491,25 @@ export interface RefundRequest {
 
 export type InstallerApplicationStatus = "pending" | "approved" | "rejected" | "temp_approved";
 
+/** A plain customer_profiles row, for the general "Website Customers"
+ * staff directory (src/lib/websiteCustomers.ts) -- every self-registered
+ * website account, not just installer applicants (InstallerApplication
+ * above only covers installer_status !== 'none') or store-credit
+ * holders. Read-only: customer_profiles has no staff-writable columns
+ * (see 0029_customer_accounts_and_cart.sql), so there is deliberately no
+ * edit/delete action on this list. */
+export interface WebsiteCustomer {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string | null;
+  emailVerified: boolean;
+  isActive: boolean;
+  installerStatus: "none" | InstallerApplicationStatus;
+  businessName: string | null;
+  createdAt: string;
+}
+
 /** A customer_profiles row where installer_status !== 'none' -- see
  * 0039_installer_accounts.sql, 0040_installer_social_profiles.sql, and
  * 0042_installer_temp_approval.sql in supabase/migrations. The four url
