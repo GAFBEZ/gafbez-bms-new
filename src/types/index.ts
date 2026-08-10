@@ -487,7 +487,10 @@ export interface RefundRequest {
 export type InstallerApplicationStatus = "pending" | "approved" | "rejected";
 
 /** A customer_profiles row where installer_status !== 'none' -- see
- * 0039_installer_accounts.sql in supabase/migrations. */
+ * 0039_installer_accounts.sql and 0040_installer_social_profiles.sql in
+ * supabase/migrations. The four url fields are the applicant's
+ * self-reported business-presence links (at least 2 required at signup)
+ * -- shown here so staff can spot-check legitimacy before approving. */
 export interface InstallerApplication {
   id: string;
   fullName: string;
@@ -498,6 +501,10 @@ export interface InstallerApplication {
   installerRejectionReason: string | null;
   installerReviewedAt: string | null;
   createdAt: string;
+  tiktokUrl: string | null;
+  instagramUrl: string | null;
+  websiteUrl: string | null;
+  googleProfileUrl: string | null;
 }
 
 export interface StoreCreditAccountSummary {

@@ -42,6 +42,7 @@ export default async function InstallerApplicationsPage() {
                 <th className="px-4 py-3">Business Name</th>
                 <th className="px-4 py-3">Email</th>
                 <th className="px-4 py-3">Phone</th>
+                <th className="px-4 py-3">Profiles</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Applied</th>
                 <th className="px-4 py-3">Actions</th>

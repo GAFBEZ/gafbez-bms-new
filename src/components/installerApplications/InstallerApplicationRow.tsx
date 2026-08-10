@@ -15,6 +15,20 @@ const STATUS_STYLES: Record<string, string> = {
   rejected: "bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400",
 };
 
+/** These links are free-text from the signup form (an untrusted
+ * customer), rendered here as a clickable href for an admin -- reject
+ * anything that isn't a plain http(s) URL so a `javascript:` value can't
+ * be used to attack the staff member reviewing the application. */
+function toSafeHttpUrl(value: string): string | null {
+  const withScheme = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+  try {
+    const parsed = new URL(withScheme);
+    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function InstallerApplicationRow({ application }: InstallerApplicationRowProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -31,12 +45,46 @@ export default function InstallerApplicationRow({ application }: InstallerApplic
 
   const canReview = application.installerStatus === "pending";
 
+  const profileLinks = [
+    { label: "TikTok", url: application.tiktokUrl },
+    { label: "Instagram", url: application.instagramUrl },
+    { label: "Website", url: application.websiteUrl },
+    { label: "Google", url: application.googleProfileUrl },
+  ]
+    .filter((link): link is { label: string; url: string } => Boolean(link.url))
+    .map((link) => ({ ...link, safeUrl: toSafeHttpUrl(link.url) }));
+
   return (
     <tr>
       <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">{application.fullName}</td>
       <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{application.businessName ?? "—"}</td>
       <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{application.email}</td>
       <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{application.phone ?? "—"}</td>
+      <td className="px-4 py-3">
+        {profileLinks.length === 0 ? (
+          <span className="text-gray-400 dark:text-gray-500">—</span>
+        ) : (
+          <div className="flex flex-col gap-0.5">
+            {profileLinks.map((link) =>
+              link.safeUrl ? (
+                <a
+                  key={link.label}
+                  href={link.safeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-medium text-brand-green underline underline-offset-2 hover:text-brand-green-dark"
+                >
+                  {link.label}
+                </a>
+              ) : (
+                <span key={link.label} className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                  {link.label}: {link.url}
+                </span>
+              ),
+            )}
+          </div>
+        )}
+      </td>
       <td className="px-4 py-3">
         <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${STATUS_STYLES[application.installerStatus]}`}>
           {application.installerStatus}
