@@ -484,6 +484,22 @@ export interface RefundRequest {
   completedAt: string | null;
 }
 
+export type InstallerApplicationStatus = "pending" | "approved" | "rejected";
+
+/** A customer_profiles row where installer_status !== 'none' -- see
+ * 0039_installer_accounts.sql in supabase/migrations. */
+export interface InstallerApplication {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string | null;
+  businessName: string | null;
+  installerStatus: InstallerApplicationStatus;
+  installerRejectionReason: string | null;
+  installerReviewedAt: string | null;
+  createdAt: string;
+}
+
 export interface StoreCreditAccountSummary {
   customerId: string;
   customerName: string | null;

@@ -17,6 +17,7 @@ import {
   Undo2,
   Coins,
   Images,
+  HardHat,
 } from "lucide-react";
 import type { NavItem } from "@/types";
 
@@ -76,6 +77,12 @@ export const navItems: NavItem[] = [
     label: "Store Credit",
     href: "/dashboard/store-credit",
     icon: Coins,
+    adminOnly: true,
+  },
+  {
+    label: "Installer Applications",
+    href: "/dashboard/installer-applications",
+    icon: HardHat,
     adminOnly: true,
   },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
