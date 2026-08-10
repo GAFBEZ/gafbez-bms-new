@@ -18,7 +18,6 @@ import {
   Coins,
   Images,
   HardHat,
-  Globe,
 } from "lucide-react";
 import type { NavItem } from "@/types";
 
@@ -38,7 +37,6 @@ export const navItems: NavItem[] = [
   { label: "Daily Sales", href: "/dashboard/daily-sales", icon: Receipt },
   { label: "Sales Tracker", href: "/dashboard/sales-tracker", icon: LineChart },
   { label: "Customers", href: "/dashboard/customers", icon: Users },
-  { label: "Website Customers", href: "/dashboard/website-customers", icon: Globe },
   { label: "Expenses", href: "/dashboard/expenses", icon: Wallet },
   { label: "Documents", href: "/dashboard/documents", icon: FileText },
   { label: "Notifications", href: "/dashboard/notifications", icon: Bell },

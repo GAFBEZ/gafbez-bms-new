@@ -1,16 +1,16 @@
-import { Plus } from "lucide-react";
-import Link from "next/link";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { CustomerTable } from "@/components/customers/CustomerTable";
+import { CustomerTabs } from "@/components/customers/CustomerTabs";
 import { getCustomers } from "@/lib/customers";
+import { getWebsiteCustomers } from "@/lib/websiteCustomers";
 import { getBranches } from "@/lib/branches";
 import { getActiveBranchId } from "@/lib/activeBranch";
 import { getCurrentUser } from "@/lib/auth";
 
 export default async function CustomersPage() {
   const activeBranchId = await getActiveBranchId();
-  const [customers, branches, user] = await Promise.all([
+  const [customers, websiteCustomers, branches, user] = await Promise.all([
     getCustomers(activeBranchId),
+    getWebsiteCustomers(),
     getBranches(),
     getCurrentUser(),
   ]);
@@ -20,24 +20,15 @@ export default async function CustomersPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Customers"
-        description={
-          activeBranchId === "all" || !activeBranchName
-            ? "Maintain customer records, contact details, and account balances."
-            : `Showing customers for ${activeBranchName}. Switch branches from the selector above to see others.`
-        }
-        actions={
-          <Link
-            href="/dashboard/customers/new"
-            className="flex items-center gap-2 rounded-lg bg-brand-green px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-green-dark"
-          >
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            Add Customer
-          </Link>
-        }
+      <PageHeader title="Customers" description="Your own staff-entered contacts, and everyone who has registered on the website." />
+      <CustomerTabs
+        customers={customers}
+        branches={operationalBranches}
+        canDelete={isAdmin}
+        activeBranchId={activeBranchId}
+        activeBranchName={activeBranchName}
+        websiteCustomers={websiteCustomers}
       />
-      <CustomerTable customers={customers} branches={operationalBranches} canDelete={isAdmin} />
     </div>
   );
 }
