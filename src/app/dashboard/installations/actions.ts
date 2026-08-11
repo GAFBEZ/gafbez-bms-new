@@ -145,9 +145,9 @@ export async function createInstallation(
     return { error: error.message };
   }
 
-  revalidatePath("/dashboard/installations");
+  revalidatePath("/dashboard/installation-jobs");
   revalidatePath("/dashboard");
-  redirect("/dashboard/installations");
+  redirect("/dashboard/installation-jobs");
 }
 
 export async function updateInstallation(
@@ -170,9 +170,9 @@ export async function updateInstallation(
     return { error: error.message };
   }
 
-  revalidatePath("/dashboard/installations");
+  revalidatePath("/dashboard/installation-jobs");
   revalidatePath("/dashboard");
-  redirect("/dashboard/installations");
+  redirect("/dashboard/installation-jobs");
 }
 
 export async function deleteInstallation(id: string): Promise<void> {
@@ -184,6 +184,6 @@ export async function deleteInstallation(id: string): Promise<void> {
 
   const supabase = await createClient();
   await supabase.from("installations").delete().eq("id", id);
-  revalidatePath("/dashboard/installations");
+  revalidatePath("/dashboard/installation-jobs");
   revalidatePath("/dashboard");
 }

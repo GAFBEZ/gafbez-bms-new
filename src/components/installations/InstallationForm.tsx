@@ -339,7 +339,7 @@ export function InstallationForm({
           {isPending ? "Saving…" : submitLabel}
         </button>
         <Link
-          href="/dashboard/installations"
+          href="/dashboard/installation-jobs"
           className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
         >
           Cancel

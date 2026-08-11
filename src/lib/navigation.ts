@@ -8,11 +8,9 @@ import {
   Wallet,
   FileText,
   UserCog,
-  Wrench,
   Settings,
   ClipboardCheck,
   Undo2,
-  Coins,
   Images,
   HardHat,
 } from "lucide-react";
@@ -42,12 +40,6 @@ export const navItems: NavItem[] = [
     adminOnly: true,
   },
   {
-    label: "Installation",
-    href: "/dashboard/installations",
-    icon: Wrench,
-    adminOnly: true,
-  },
-  {
     label: "Installation Jobs",
     href: "/dashboard/installation-jobs",
     icon: ClipboardCheck,
@@ -62,12 +54,6 @@ export const navItems: NavItem[] = [
     href: "/dashboard/installation-projects",
     icon: Images,
     managerOrAdmin: true,
-  },
-  {
-    label: "Store Credit",
-    href: "/dashboard/store-credit",
-    icon: Coins,
-    adminOnly: true,
   },
   {
     label: "Installer Applications",

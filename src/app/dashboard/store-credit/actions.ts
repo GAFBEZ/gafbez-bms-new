@@ -27,6 +27,6 @@ export async function adjustStoreCredit(_prevState: AdjustCreditFormState, formD
 
   if (error) return { error: error.message };
 
-  revalidatePath("/dashboard/store-credit");
+  revalidatePath("/dashboard/refunds");
   return initial;
 }
