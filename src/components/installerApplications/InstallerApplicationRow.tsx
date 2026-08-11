@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import type { InstallerApplication } from "@/types";
 import { formatDate } from "@/lib/format";
+import { WebsiteCustomerActions } from "@/components/websiteCustomers/WebsiteCustomerActions";
 import {
   approveInstallerApplication,
   rejectInstallerApplication,
@@ -215,6 +216,12 @@ export default function InstallerApplicationRow({ application, canFinalApprove, 
 
           {application.installerStatus === "rejected" && application.installerRejectionReason && (
             <p className="text-xs text-gray-500 dark:text-gray-400">{application.installerRejectionReason}</p>
+          )}
+
+          {canFinalApprove && (
+            <div className="mt-1 border-t border-gray-100 dark:border-gray-800 pt-2">
+              <WebsiteCustomerActions customerId={application.id} customerName={application.fullName} isActive={application.isActive} />
+            </div>
           )}
         </div>
       </td>

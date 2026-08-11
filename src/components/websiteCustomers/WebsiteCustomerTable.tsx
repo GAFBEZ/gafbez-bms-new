@@ -3,12 +3,14 @@
 import { useMemo, useState } from "react";
 import { Download, Search } from "lucide-react";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { WebsiteCustomerActions } from "@/components/websiteCustomers/WebsiteCustomerActions";
 import { formatDate } from "@/lib/format";
 import { downloadCsv } from "@/lib/csv";
 import type { WebsiteCustomer } from "@/types";
 
 interface WebsiteCustomerTableProps {
   customers: WebsiteCustomer[];
+  isAdmin: boolean;
 }
 
 const INSTALLER_STATUS_STYLES: Record<string, string> = {
@@ -25,7 +27,7 @@ const INSTALLER_STATUS_LABELS: Record<string, string> = {
   rejected: "installer, rejected",
 };
 
-export function WebsiteCustomerTable({ customers }: WebsiteCustomerTableProps) {
+export function WebsiteCustomerTable({ customers, isAdmin }: WebsiteCustomerTableProps) {
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -108,6 +110,11 @@ export function WebsiteCustomerTable({ customers }: WebsiteCustomerTableProps) {
                 <th scope="col" className="px-4 py-3 font-medium">
                   Joined
                 </th>
+                {isAdmin && (
+                  <th scope="col" className="px-4 py-3 font-medium">
+                    <span className="sr-only">Actions</span>
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -144,6 +151,11 @@ export function WebsiteCustomerTable({ customers }: WebsiteCustomerTableProps) {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{formatDate(customer.createdAt)}</td>
+                  {isAdmin && (
+                    <td className="px-4 py-3">
+                      <WebsiteCustomerActions customerId={customer.id} customerName={customer.fullName} isActive={customer.isActive} />
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

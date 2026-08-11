@@ -6,6 +6,7 @@ interface InstallerApplicationRow {
   full_name: string;
   email: string;
   phone: string | null;
+  is_active: boolean;
   business_name: string | null;
   installer_status: InstallerApplicationStatus;
   installer_rejection_reason: string | null;
@@ -31,7 +32,7 @@ export async function getInstallerApplications(): Promise<InstallerApplication[]
   const { data, error } = await supabase
     .from("customer_profiles")
     .select(
-      "id, full_name, email, phone, business_name, installer_status, installer_rejection_reason, installer_reviewed_by, installer_reviewed_at, installer_temp_approved_by, installer_temp_approved_at, created_at, tiktok_url, instagram_url, website_url, google_profile_url",
+      "id, full_name, email, phone, is_active, business_name, installer_status, installer_rejection_reason, installer_reviewed_by, installer_reviewed_at, installer_temp_approved_by, installer_temp_approved_at, created_at, tiktok_url, instagram_url, website_url, google_profile_url",
     )
     .neq("installer_status", "none")
     .order("created_at", { ascending: false });
@@ -64,6 +65,7 @@ export async function getInstallerApplications(): Promise<InstallerApplication[]
     fullName: row.full_name,
     email: row.email,
     phone: row.phone,
+    isActive: row.is_active,
     businessName: row.business_name,
     installerStatus: row.installer_status,
     installerRejectionReason: row.installer_rejection_reason,

@@ -530,6 +530,7 @@ export interface InstallerApplication {
   fullName: string;
   email: string;
   phone: string | null;
+  isActive: boolean;
   businessName: string | null;
   installerStatus: InstallerApplicationStatus;
   installerRejectionReason: string | null;

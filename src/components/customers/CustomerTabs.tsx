@@ -90,8 +90,10 @@ export function CustomerTabs({ customers, branches, canDelete, activeBranchId, a
       </div>
 
       <div id="website-customers-panel" role="tabpanel" aria-labelledby={websiteTabId} hidden={activeTab !== "website"} className="flex flex-col gap-3">
-        <p className="text-sm text-gray-500 dark:text-gray-400">Everyone who has registered an account on the website. Read-only.</p>
-        <WebsiteCustomerTable customers={websiteCustomers} />
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Everyone who has registered an account on the website.{canDelete ? " Deactivate or delete an account from the Actions column." : ""}
+        </p>
+        <WebsiteCustomerTable customers={websiteCustomers} isAdmin={canDelete} />
       </div>
     </div>
   );
