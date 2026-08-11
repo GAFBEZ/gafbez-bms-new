@@ -58,7 +58,7 @@ export function rangeToWindow(from: Date, to: Date): DateWindow {
   return { since, until };
 }
 
-async function fetchSales(window: DateWindow): Promise<SaleAggregateRow[] | null> {
+async function fetchSales(window: DateWindow, staffId?: string): Promise<SaleAggregateRow[] | null> {
   const supabase = await createClient();
   let query = supabase
     .from("sales")
@@ -66,6 +66,7 @@ async function fetchSales(window: DateWindow): Promise<SaleAggregateRow[] | null
 
   if (window.since) query = query.gte("created_at", window.since.toISOString());
   if (window.until) query = query.lt("created_at", window.until.toISOString());
+  if (staffId) query = query.eq("created_by", staffId);
 
   const { data, error } = await query;
 
@@ -83,12 +84,13 @@ async function fetchSales(window: DateWindow): Promise<SaleAggregateRow[] | null
  * date filter applies to the sale's date, not some column on sale_items
  * itself (which has none).
  */
-async function fetchCogs(window: DateWindow): Promise<number | null> {
+async function fetchCogs(window: DateWindow, staffId?: string): Promise<number | null> {
   const supabase = await createClient();
-  let query = supabase.from("sale_items").select("quantity, unit_cost, sales!inner(created_at)");
+  let query = supabase.from("sale_items").select("quantity, unit_cost, sales!inner(created_at, created_by)");
 
   if (window.since) query = query.gte("sales.created_at", window.since.toISOString());
   if (window.until) query = query.lt("sales.created_at", window.until.toISOString());
+  if (staffId) query = query.eq("sales.created_by", staffId);
 
   const { data, error } = await query;
 
@@ -110,14 +112,15 @@ async function fetchCogs(window: DateWindow): Promise<number | null> {
  * time bucket. Double-nested filter (sale_returns -> sale_items -> sales)
  * for the same reason fetchCogs needs one level of it.
  */
-async function fetchReturns(window: DateWindow): Promise<ReturnTotals | null> {
+async function fetchReturns(window: DateWindow, staffId?: string): Promise<ReturnTotals | null> {
   const supabase = await createClient();
   let query = supabase
     .from("sale_returns")
-    .select("quantity, sale_items!inner(unit_price, unit_cost, sales!inner(created_at))");
+    .select("quantity, sale_items!inner(unit_price, unit_cost, sales!inner(created_at, created_by))");
 
   if (window.since) query = query.gte("sale_items.sales.created_at", window.since.toISOString());
   if (window.until) query = query.lt("sale_items.sales.created_at", window.until.toISOString());
+  if (staffId) query = query.eq("sale_items.sales.created_by", staffId);
 
   const { data, error } = await query;
 
@@ -139,12 +142,15 @@ async function fetchReturns(window: DateWindow): Promise<ReturnTotals | null> {
  * Always aggregates across every branch, regardless of the global branch
  * filter — a branch comparison is the point of this chart, so scoping it
  * to one branch would leave a single trivial bar. Pass a days-based window,
- * a rangeToWindow() for a picked date range, or {} for all-time.
+ * a rangeToWindow() for a picked date range, or {} for all-time. An
+ * optional staffId narrows this to one salesperson's branch split (the
+ * Sales Tracker staff slicer), while still comparing across every branch.
  */
 export async function getSalesByBranch(
   window: DateWindow = {},
+  staffId?: string,
 ): Promise<BranchSalesSummary[] | null> {
-  const rows = await fetchSales(window);
+  const rows = await fetchSales(window, staffId);
   if (!rows) return null;
 
   const totals = new Map<string, BranchSalesSummary>();
@@ -208,21 +214,24 @@ interface SaleItemProductRow {
 /**
  * Top products by revenue in the window, gross (not net of returns -- same
  * "activity view" reasoning as getSalesByBranch/getSalesByStaff above, not
- * the profitability summary). Always company-wide, same as the other by-X
- * breakdowns on this page. Joined via `sales!inner(created_at)` so the date
- * filter applies to the sale's date, same technique as fetchCogs.
+ * the profitability summary). Company-wide unless staffId narrows it to
+ * one salesperson's top products (the Sales Tracker staff slicer). Joined
+ * via `sales!inner(created_at)` so the date filter applies to the sale's
+ * date, same technique as fetchCogs.
  */
 export async function getTopProducts(
   window: DateWindow = {},
   limit = 8,
+  staffId?: string,
 ): Promise<TopProductSummary[] | null> {
   const supabase = await createClient();
   let query = supabase
     .from("sale_items")
-    .select("product_id, quantity, unit_price, products(name, sku), sales!inner(created_at)");
+    .select("product_id, quantity, unit_price, products(name, sku), sales!inner(created_at, created_by)");
 
   if (window.since) query = query.gte("sales.created_at", window.since.toISOString());
   if (window.until) query = query.lt("sales.created_at", window.until.toISOString());
+  if (staffId) query = query.eq("sales.created_by", staffId);
 
   const { data, error } = await query;
 
@@ -261,10 +270,10 @@ export async function getTopProducts(
  * "since"). One bucket per day in the range, including days with zero
  * sales, so the chart doesn't skip gaps.
  */
-export async function getSalesTrend(window: DateWindow): Promise<SalesTrendPoint[] | null> {
+export async function getSalesTrend(window: DateWindow, staffId?: string): Promise<SalesTrendPoint[] | null> {
   if (!window.since || !window.until) return null;
 
-  const rows = await fetchSales(window);
+  const rows = await fetchSales(window, staffId);
   if (!rows) return null;
 
   const totals = new Map<string, number>();
@@ -290,11 +299,11 @@ export async function getSalesTrend(window: DateWindow): Promise<SalesTrendPoint
  * and "activity" views like a daily trend are a normal thing to report
  * gross in most small-business tooling).
  */
-export async function getSalesSummary(window: DateWindow = {}): Promise<SalesSummary | null> {
+export async function getSalesSummary(window: DateWindow = {}, staffId?: string): Promise<SalesSummary | null> {
   const [rows, totalCogsGross, returns] = await Promise.all([
-    fetchSales(window),
-    fetchCogs(window),
-    fetchReturns(window),
+    fetchSales(window, staffId),
+    fetchCogs(window, staffId),
+    fetchReturns(window, staffId),
   ]);
   if (!rows || totalCogsGross === null || returns === null) return null;
 

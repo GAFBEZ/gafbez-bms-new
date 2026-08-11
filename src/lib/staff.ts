@@ -84,3 +84,14 @@ export async function getStaffNameMap(): Promise<Record<string, string>> {
   }
   return map;
 }
+
+/** id + name for every staff member, sorted by name -- for the Sales
+ * Tracker staff slicer dropdown. Reuses getStaffNameMap()'s broadly-
+ * available get_staff_names() RPC; includes former staff so historic
+ * sales stay filterable by who recorded them. */
+export async function getStaffOptions(): Promise<{ id: string; name: string }[]> {
+  const map = await getStaffNameMap();
+  return Object.entries(map)
+    .map(([id, name]) => ({ id, name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}

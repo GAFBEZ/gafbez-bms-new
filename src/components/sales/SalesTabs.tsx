@@ -12,6 +12,7 @@ import { StaffSalesChart } from "@/components/sales/StaffSalesChart";
 import { TopProductsChart } from "@/components/sales/TopProductsChart";
 import { SalesTrendChart } from "@/components/sales/SalesTrendChart";
 import { SalesDateFilter } from "@/components/sales/SalesDateFilter";
+import { SalesStaffFilter } from "@/components/sales/SalesStaffFilter";
 import { formatCurrency } from "@/lib/format";
 import { DASHBOARD_PALETTE } from "@/lib/palette";
 import type { Sale, BranchSalesSummary, StaffSalesSummary, TopProductSummary, SalesTrendPoint, SalesSummary } from "@/types";
@@ -44,6 +45,10 @@ interface SalesTabsProps {
   customRange: boolean;
   rawFrom: string | undefined;
   rawTo: string | undefined;
+  // Staff slicer (admin only)
+  staffId: string | null;
+  staffName: string | null;
+  staffOptions: { id: string; name: string }[];
 }
 
 /**
@@ -76,6 +81,9 @@ export function SalesTabs({
   customRange,
   rawFrom,
   rawTo,
+  staffId,
+  staffName,
+  staffOptions,
 }: SalesTabsProps) {
   const [activeTab, setActiveTab] = useState<"daily" | "tracker">(initialTab);
   const dailyTabId = useId();
@@ -115,8 +123,8 @@ export function SalesTabs({
 
       <div id="sales-tracker-panel" role="tabpanel" aria-labelledby={trackerTabId} hidden={activeTab !== "tracker"} className="flex flex-col gap-4">
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Analyse sales trends and branch performance over time. Branch comparison here always covers every branch, regardless of the header&apos;s branch
-          filter.
+          Analyse sales trends and branch performance over time
+          {staffName ? `, filtered to ${staffName}` : ""}. Branch comparison here always covers every branch, regardless of the header&apos;s branch filter.
         </p>
 
         {!dataIsLive && (
@@ -130,7 +138,10 @@ export function SalesTabs({
             {(Object.keys(RANGE_LABELS) as RangeKey[]).map((key) => (
               <Link
                 key={key}
-                href={key === "30d" ? "/dashboard/daily-sales" : `/dashboard/daily-sales?range=${key}`}
+                href={
+                  (key === "30d" ? "/dashboard/daily-sales" : `/dashboard/daily-sales?range=${key}`) +
+                  (staffId ? `${key === "30d" ? "?" : "&"}staff=${staffId}` : "")
+                }
                 className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                   !customRange && range === key
                     ? "bg-brand-green text-white"
@@ -142,7 +153,13 @@ export function SalesTabs({
             ))}
           </div>
 
-          <SalesDateFilter from={rawFrom} to={rawTo} />
+          <SalesDateFilter from={rawFrom} to={rawTo} staffId={staffId} />
+
+          {isAdmin && (
+            <div className="border-t border-gray-100 dark:border-gray-800 pt-3">
+              <SalesStaffFilter staffId={staffId} staffOptions={staffOptions} range={range ?? undefined} from={rawFrom} to={rawTo} />
+            </div>
+          )}
         </div>
 
         <div className={`grid grid-cols-2 gap-3 sm:gap-4 ${isAdmin ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
@@ -179,11 +196,11 @@ export function SalesTabs({
         </div>
 
         <div className={`grid grid-cols-1 gap-4 ${isAdmin ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
-          <DashboardSection title="Sales by Branch">
+          <DashboardSection title={staffName ? `Sales by Branch — ${staffName}` : "Sales by Branch"}>
             <BranchSalesChart data={byBranch ?? []} />
           </DashboardSection>
 
-          <DashboardSection title="Top Products">
+          <DashboardSection title={staffName ? `Top Products — ${staffName}` : "Top Products"}>
             <TopProductsChart data={topProducts ?? []} />
           </DashboardSection>
 
@@ -194,7 +211,7 @@ export function SalesTabs({
           )}
         </div>
 
-        <DashboardSection title="Daily Sales Trend">
+        <DashboardSection title={staffName ? `Daily Sales Trend — ${staffName}` : "Daily Sales Trend"}>
           <SalesTrendChart data={trend ?? []} />
         </DashboardSection>
       </div>

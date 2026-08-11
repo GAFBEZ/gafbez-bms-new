@@ -4,6 +4,7 @@ import { getSales } from "@/lib/sales";
 import { getBranches } from "@/lib/branches";
 import { getActiveBranchId } from "@/lib/activeBranch";
 import { getCurrentUser } from "@/lib/auth";
+import { getStaffOptions } from "@/lib/staff";
 import {
   getSalesByBranch,
   getSalesByStaff,
@@ -57,9 +58,9 @@ function formatDate(date: Date): string {
 export default async function DailySalesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ range?: string; from?: string; to?: string }>;
+  searchParams: Promise<{ range?: string; from?: string; to?: string; staff?: string }>;
 }) {
-  const { range: rawRange, from: rawFrom, to: rawTo } = await searchParams;
+  const { range: rawRange, from: rawFrom, to: rawTo, staff: rawStaff } = await searchParams;
 
   const parsedFrom = parseDateParam(rawFrom);
   const parsedTo = parseDateParam(rawTo);
@@ -88,20 +89,26 @@ export default async function DailySalesPage({
   const activeBranchId = await getActiveBranchId();
   const user = await getCurrentUser();
   const isAdmin = user?.role === "admin";
+  // Staff slicer is admin-only, matching the existing Sales by Staff/Gross
+  // Profit gating -- a non-admin's ?staff= param (if somehow present) is
+  // simply ignored rather than applied.
+  const staffId = isAdmin && rawStaff ? rawStaff : null;
 
-  const [sales, branches, summary, byBranch, byStaff, topProducts, trend] = await Promise.all([
+  const [sales, branches, staffOptions, summary, byBranch, byStaff, topProducts, trend] = await Promise.all([
     getSales(100, activeBranchId),
     getBranches(),
-    getSalesSummary(window),
-    getSalesByBranch(window),
+    isAdmin ? getStaffOptions() : Promise.resolve([]),
+    getSalesSummary(window, staffId ?? undefined),
+    getSalesByBranch(window, staffId ?? undefined),
     isAdmin ? getSalesByStaff(window) : Promise.resolve(null),
-    getTopProducts(window),
-    getSalesTrend(trendWindow),
+    getTopProducts(window, 8, staffId ?? undefined),
+    getSalesTrend(trendWindow, staffId ?? undefined),
   ]);
 
   const dataIsLive = summary !== null && byBranch !== null && topProducts !== null && trend !== null;
   const activeBranchName = branches.find((b) => b.id === activeBranchId)?.name;
-  const hasTrackerParams = Boolean(rawRange || rawFrom || rawTo);
+  const hasTrackerParams = Boolean(rawRange || rawFrom || rawTo || rawStaff);
+  const staffName = staffId ? (staffOptions.find((s) => s.id === staffId)?.name ?? "Former staff member") : null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -123,6 +130,9 @@ export default async function DailySalesPage({
         customRange={customRange}
         rawFrom={rawFrom}
         rawTo={rawTo}
+        staffId={staffId}
+        staffName={staffName}
+        staffOptions={staffOptions}
       />
     </div>
   );

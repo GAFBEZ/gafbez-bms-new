@@ -4,6 +4,7 @@ import { CalendarDays } from "lucide-react";
 interface SalesDateFilterProps {
   from?: string;
   to?: string;
+  staffId?: string | null;
 }
 
 const inputClasses =
@@ -16,7 +17,7 @@ const inputClasses =
  * in daily-sales/page.tsx). Pick the same date in both fields for a
  * single day.
  */
-export function SalesDateFilter({ from, to }: SalesDateFilterProps) {
+export function SalesDateFilter({ from, to, staffId }: SalesDateFilterProps) {
   const today = new Date().toISOString().slice(0, 10);
 
   return (
@@ -25,6 +26,8 @@ export function SalesDateFilter({ from, to }: SalesDateFilterProps) {
         className="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500"
         aria-hidden="true"
       />
+
+      {staffId && <input type="hidden" name="staff" value={staffId} />}
 
       <label htmlFor="sales-tracker-from" className="sr-only">
         From
@@ -61,7 +64,7 @@ export function SalesDateFilter({ from, to }: SalesDateFilterProps) {
 
       {(from || to) && (
         <Link
-          href="/dashboard/daily-sales?range=30d"
+          href={staffId ? `/dashboard/daily-sales?range=30d&staff=${staffId}` : "/dashboard/daily-sales?range=30d"}
           className="text-xs font-medium text-brand-green hover:underline dark:text-emerald-400"
         >
           Clear
