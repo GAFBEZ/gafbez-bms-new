@@ -306,7 +306,7 @@ export default function ComboPackageForm({ action, products, initialValues, subm
         >
           {isPending ? "Saving…" : submitLabel}
         </button>
-        <Link href="/dashboard/combo-packages" className="rounded-lg border border-gray-300 dark:border-gray-600 px-5 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300">
+        <Link href="/dashboard/sales-catalogue" className="rounded-lg border border-gray-300 dark:border-gray-600 px-5 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300">
           Cancel
         </Link>
       </div>

@@ -11,14 +11,16 @@ const inputClasses =
 
 /**
  * Plain GET form -- no client JS needed. Submitting navigates to
- * /dashboard/sales-tracker?from=...&to=..., which the page reads directly.
- * Pick the same date in both fields for a single day.
+ * /dashboard/daily-sales?from=...&to=..., which the page reads directly
+ * (SalesTabs then lands on the Sales Tracker tab -- see hasTrackerParams
+ * in daily-sales/page.tsx). Pick the same date in both fields for a
+ * single day.
  */
 export function SalesDateFilter({ from, to }: SalesDateFilterProps) {
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <form action="/dashboard/sales-tracker" className="flex flex-wrap items-center gap-2">
+    <form action="/dashboard/daily-sales" className="flex flex-wrap items-center gap-2">
       <CalendarDays
         className="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500"
         aria-hidden="true"
@@ -59,7 +61,7 @@ export function SalesDateFilter({ from, to }: SalesDateFilterProps) {
 
       {(from || to) && (
         <Link
-          href="/dashboard/sales-tracker"
+          href="/dashboard/daily-sales?range=30d"
           className="text-xs font-medium text-brand-green hover:underline dark:text-emerald-400"
         >
           Clear

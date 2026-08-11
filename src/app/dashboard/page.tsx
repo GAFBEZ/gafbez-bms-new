@@ -185,7 +185,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <DashboardSection
           title={branchSalesAreLive ? "Sales by Branch" : "Sales by Branch (Demo)"}
-          viewAllHref="/dashboard/sales-tracker"
+          viewAllHref="/dashboard/daily-sales?range=30d"
         >
           {branchSalesAreLive ? (
             <BranchSalesChart data={liveBranchSales} />

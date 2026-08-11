@@ -120,6 +120,5 @@ export async function recordReturn(
   revalidatePath("/dashboard/stock-movement");
   revalidatePath("/dashboard/customers");
   revalidatePath("/dashboard");
-  revalidatePath("/dashboard/sales-tracker");
   return { error: null };
 }

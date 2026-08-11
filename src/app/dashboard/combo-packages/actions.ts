@@ -100,8 +100,8 @@ export async function createComboPackage(
     return { error: error.message };
   }
 
-  revalidatePath("/dashboard/combo-packages");
-  redirect("/dashboard/combo-packages");
+  revalidatePath("/dashboard/sales-catalogue");
+  redirect("/dashboard/sales-catalogue");
 }
 
 export async function updateComboPackage(
@@ -150,9 +150,9 @@ export async function updateComboPackage(
     return { error: error.message };
   }
 
-  revalidatePath("/dashboard/combo-packages");
+  revalidatePath("/dashboard/sales-catalogue");
   revalidatePath(`/dashboard/combo-packages/${id}`);
-  redirect("/dashboard/combo-packages");
+  redirect("/dashboard/sales-catalogue");
 }
 
 export async function toggleComboPackageStatus(
@@ -177,5 +177,5 @@ export async function toggleComboPackageStatus(
     p_display_order: pkg.display_order,
   });
 
-  revalidatePath("/dashboard/combo-packages");
+  revalidatePath("/dashboard/sales-catalogue");
 }
