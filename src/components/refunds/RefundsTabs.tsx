@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { TabButton } from "@/components/ui/TabButton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import RefundRequestRow from "@/components/refunds/RefundRequestRow";
 import AdjustCreditForm from "@/components/storeCredit/AdjustCreditForm";
@@ -34,38 +35,14 @@ export function RefundsTabs({ requests, isAdmin, user, accounts, ledger }: Refun
 
   return (
     <div className="flex flex-col gap-5">
-      <div role="tablist" aria-label="Refund and credit views" className="flex gap-1 border-b border-gray-200 dark:border-gray-800">
-        <button
-          type="button"
-          role="tab"
-          id={refundsTabId}
-          aria-selected={activeTab === "refunds"}
-          aria-controls="refund-requests-panel"
-          onClick={() => setActiveTab("refunds")}
-          className={
-            activeTab === "refunds"
-              ? "border-b-2 border-brand-green px-4 py-2.5 text-sm font-semibold text-brand-green dark:text-emerald-400"
-              : "border-b-2 border-transparent px-4 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-          }
-        >
+      <div role="tablist" aria-label="Refund and credit views" className="flex gap-2">
+        <TabButton id={refundsTabId} isActive={activeTab === "refunds"} ariaControls="refund-requests-panel" onClick={() => setActiveTab("refunds")}>
           Refund Requests
-        </button>
+        </TabButton>
         {isAdmin && (
-          <button
-            type="button"
-            role="tab"
-            id={creditTabId}
-            aria-selected={activeTab === "credit"}
-            aria-controls="store-credit-panel"
-            onClick={() => setActiveTab("credit")}
-            className={
-              activeTab === "credit"
-                ? "border-b-2 border-brand-green px-4 py-2.5 text-sm font-semibold text-brand-green dark:text-emerald-400"
-                : "border-b-2 border-transparent px-4 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-            }
-          >
+          <TabButton id={creditTabId} isActive={activeTab === "credit"} ariaControls="store-credit-panel" onClick={() => setActiveTab("credit")}>
             Store Credit
-          </button>
+          </TabButton>
         )}
       </div>
 

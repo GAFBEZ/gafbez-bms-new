@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import { TabButton } from "@/components/ui/TabButton";
 import { CatalogueGrid } from "@/components/sales-catalogue/CatalogueGrid";
 import ComboPackageTable from "@/components/comboPackages/ComboPackageTable";
 import type { ComboPackage, Product } from "@/types";
@@ -32,38 +33,14 @@ export function CatalogueTabs({ products, activeBranchId, activeBranchName, pack
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 dark:border-gray-800">
-        <div role="tablist" aria-label="Catalogue views" className="flex gap-1">
-          <button
-            type="button"
-            role="tab"
-            id={catalogueTabId}
-            aria-selected={activeTab === "catalogue"}
-            aria-controls="sales-catalogue-panel"
-            onClick={() => setActiveTab("catalogue")}
-            className={
-              activeTab === "catalogue"
-                ? "border-b-2 border-brand-green px-4 py-2.5 text-sm font-semibold text-brand-green dark:text-emerald-400"
-                : "border-b-2 border-transparent px-4 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-            }
-          >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div role="tablist" aria-label="Catalogue views" className="flex gap-2">
+          <TabButton id={catalogueTabId} isActive={activeTab === "catalogue"} ariaControls="sales-catalogue-panel" onClick={() => setActiveTab("catalogue")}>
             Sales Catalogue
-          </button>
-          <button
-            type="button"
-            role="tab"
-            id={comboTabId}
-            aria-selected={activeTab === "combo"}
-            aria-controls="combo-packages-panel"
-            onClick={() => setActiveTab("combo")}
-            className={
-              activeTab === "combo"
-                ? "border-b-2 border-brand-green px-4 py-2.5 text-sm font-semibold text-brand-green dark:text-emerald-400"
-                : "border-b-2 border-transparent px-4 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-            }
-          >
+          </TabButton>
+          <TabButton id={comboTabId} isActive={activeTab === "combo"} ariaControls="combo-packages-panel" onClick={() => setActiveTab("combo")}>
             Combo Packages
-          </button>
+          </TabButton>
         </div>
 
         {activeTab === "combo" && canEditPackages && (

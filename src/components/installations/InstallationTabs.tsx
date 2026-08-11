@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import Link from "next/link";
 import { Plus, ReceiptText, Wallet, TrendingUp, Percent } from "lucide-react";
+import { TabButton } from "@/components/ui/TabButton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 import { InstallationTable } from "@/components/installations/InstallationTable";
@@ -51,39 +52,15 @@ export function InstallationTabs({ jobs, isAdmin, installations, summary, active
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 dark:border-gray-800">
-        <div role="tablist" aria-label="Installation views" className="flex gap-1">
-          <button
-            type="button"
-            role="tab"
-            id={jobsTabId}
-            aria-selected={activeTab === "jobs"}
-            aria-controls="installation-jobs-panel"
-            onClick={() => setActiveTab("jobs")}
-            className={
-              activeTab === "jobs"
-                ? "border-b-2 border-brand-green px-4 py-2.5 text-sm font-semibold text-brand-green dark:text-emerald-400"
-                : "border-b-2 border-transparent px-4 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-            }
-          >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div role="tablist" aria-label="Installation views" className="flex gap-2">
+          <TabButton id={jobsTabId} isActive={activeTab === "jobs"} ariaControls="installation-jobs-panel" onClick={() => setActiveTab("jobs")}>
             Installation Jobs
-          </button>
+          </TabButton>
           {isAdmin && (
-            <button
-              type="button"
-              role="tab"
-              id={financialTabId}
-              aria-selected={activeTab === "financial"}
-              aria-controls="installation-financial-panel"
-              onClick={() => setActiveTab("financial")}
-              className={
-                activeTab === "financial"
-                  ? "border-b-2 border-brand-green px-4 py-2.5 text-sm font-semibold text-brand-green dark:text-emerald-400"
-                  : "border-b-2 border-transparent px-4 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-              }
-            >
+            <TabButton id={financialTabId} isActive={activeTab === "financial"} ariaControls="installation-financial-panel" onClick={() => setActiveTab("financial")}>
               Installation Cost &amp; Profit
-            </button>
+            </TabButton>
           )}
         </div>
 

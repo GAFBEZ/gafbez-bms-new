@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import Link from "next/link";
 import { Plus, Calculator, PiggyBank, Receipt, ShoppingCart } from "lucide-react";
+import { TabButton } from "@/components/ui/TabButton";
 import { SaleTable } from "@/components/sales/SaleTable";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 import { DashboardSection } from "@/components/dashboard/DashboardSection";
@@ -82,38 +83,14 @@ export function SalesTabs({
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 dark:border-gray-800">
-        <div role="tablist" aria-label="Sales views" className="flex gap-1">
-          <button
-            type="button"
-            role="tab"
-            id={dailyTabId}
-            aria-selected={activeTab === "daily"}
-            aria-controls="daily-sales-panel"
-            onClick={() => setActiveTab("daily")}
-            className={
-              activeTab === "daily"
-                ? "border-b-2 border-brand-green px-4 py-2.5 text-sm font-semibold text-brand-green dark:text-emerald-400"
-                : "border-b-2 border-transparent px-4 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-            }
-          >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div role="tablist" aria-label="Sales views" className="flex gap-2">
+          <TabButton id={dailyTabId} isActive={activeTab === "daily"} ariaControls="daily-sales-panel" onClick={() => setActiveTab("daily")}>
             Daily Sales
-          </button>
-          <button
-            type="button"
-            role="tab"
-            id={trackerTabId}
-            aria-selected={activeTab === "tracker"}
-            aria-controls="sales-tracker-panel"
-            onClick={() => setActiveTab("tracker")}
-            className={
-              activeTab === "tracker"
-                ? "border-b-2 border-brand-green px-4 py-2.5 text-sm font-semibold text-brand-green dark:text-emerald-400"
-                : "border-b-2 border-transparent px-4 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-            }
-          >
+          </TabButton>
+          <TabButton id={trackerTabId} isActive={activeTab === "tracker"} ariaControls="sales-tracker-panel" onClick={() => setActiveTab("tracker")}>
             Sales Tracker
-          </button>
+          </TabButton>
         </div>
 
         {activeTab === "daily" && (

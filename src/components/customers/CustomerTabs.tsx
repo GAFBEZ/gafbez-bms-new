@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import { TabButton } from "@/components/ui/TabButton";
 import { CustomerTable } from "@/components/customers/CustomerTable";
 import { WebsiteCustomerTable } from "@/components/websiteCustomers/WebsiteCustomerTable";
 import type { Branch, Customer, WebsiteCustomer } from "@/types";
@@ -35,38 +36,14 @@ export function CustomerTabs({ customers, branches, canDelete, activeBranchId, a
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 dark:border-gray-800">
-        <div role="tablist" aria-label="Customer lists" className="flex gap-1">
-          <button
-            type="button"
-            role="tab"
-            id={manualTabId}
-            aria-selected={activeTab === "manual"}
-            aria-controls="manual-customers-panel"
-            onClick={() => setActiveTab("manual")}
-            className={
-              activeTab === "manual"
-                ? "border-b-2 border-brand-green px-4 py-2.5 text-sm font-semibold text-brand-green dark:text-emerald-400"
-                : "border-b-2 border-transparent px-4 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-            }
-          >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div role="tablist" aria-label="Customer lists" className="flex gap-2">
+          <TabButton id={manualTabId} isActive={activeTab === "manual"} ariaControls="manual-customers-panel" onClick={() => setActiveTab("manual")}>
             Customers
-          </button>
-          <button
-            type="button"
-            role="tab"
-            id={websiteTabId}
-            aria-selected={activeTab === "website"}
-            aria-controls="website-customers-panel"
-            onClick={() => setActiveTab("website")}
-            className={
-              activeTab === "website"
-                ? "border-b-2 border-brand-green px-4 py-2.5 text-sm font-semibold text-brand-green dark:text-emerald-400"
-                : "border-b-2 border-transparent px-4 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-            }
-          >
+          </TabButton>
+          <TabButton id={websiteTabId} isActive={activeTab === "website"} ariaControls="website-customers-panel" onClick={() => setActiveTab("website")}>
             Website Customers
-          </button>
+          </TabButton>
         </div>
 
         {activeTab === "manual" && (
