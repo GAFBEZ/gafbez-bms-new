@@ -39,3 +39,14 @@ export async function markWhatsAppOrderPaid(orderId: string): Promise<{ error: s
   revalidate();
   return { error: error?.message ?? null };
 }
+
+/** Admin-only, and only for rejected/expired requests -- see
+ * delete_whatsapp_order in 0051_admin_delete_whatsapp_order.sql for the
+ * exact status gate this enforces server-side regardless of what the UI
+ * allows clicking. */
+export async function deleteWhatsAppOrder(orderId: string): Promise<{ error: string | null }> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("delete_whatsapp_order", { p_order_id: orderId });
+  revalidate();
+  return { error: error?.message ?? null };
+}

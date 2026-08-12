@@ -3,10 +3,11 @@
 import { useState, useTransition } from "react";
 import type { WhatsAppOrder } from "@/types";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { confirmWhatsAppOrder, rejectWhatsAppOrder, markWhatsAppOrderPaid } from "@/app/dashboard/whatsapp-orders/actions";
+import { confirmWhatsAppOrder, rejectWhatsAppOrder, markWhatsAppOrderPaid, deleteWhatsAppOrder } from "@/app/dashboard/whatsapp-orders/actions";
 
 interface WhatsAppOrderRowProps {
   order: WhatsAppOrder;
+  isAdmin: boolean;
 }
 
 const STATUS_STYLES: Record<WhatsAppOrder["status"], string> = {
@@ -25,11 +26,12 @@ const STATUS_LABELS: Record<WhatsAppOrder["status"], string> = {
   expired: "expired",
 };
 
-export default function WhatsAppOrderRow({ order }: WhatsAppOrderRowProps) {
+export default function WhatsAppOrderRow({ order, isAdmin }: WhatsAppOrderRowProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState("");
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   function run(action: () => Promise<{ error: string | null }>) {
     setError(null);
@@ -41,6 +43,7 @@ export default function WhatsAppOrderRow({ order }: WhatsAppOrderRowProps) {
 
   const isPendingReview = order.status === "whatsapp_review_required";
   const isConfirmedUnpaid = order.status === "whatsapp_confirmed" && order.paymentStatus !== "successful";
+  const isDeletable = isAdmin && (order.status === "cancelled" || order.status === "expired");
 
   return (
     <tr>
@@ -125,6 +128,35 @@ export default function WhatsAppOrderRow({ order }: WhatsAppOrderRowProps) {
 
           {order.status === "cancelled" && order.cancellationReason && (
             <p className="text-xs text-gray-500 dark:text-gray-400">{order.cancellationReason}</p>
+          )}
+
+          {isDeletable && !confirmingDelete && (
+            <button
+              type="button"
+              onClick={() => setConfirmingDelete(true)}
+              className="w-fit text-xs font-semibold text-red-600 hover:underline dark:text-red-400"
+            >
+              Delete
+            </button>
+          )}
+
+          {isDeletable && confirmingDelete && (
+            <div className="flex flex-col gap-1.5">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Delete this order permanently?</p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => run(() => deleteWhatsAppOrder(order.id))}
+                  className="rounded-lg bg-red-600 px-3 py-1 text-xs font-semibold text-white disabled:opacity-60"
+                >
+                  Confirm Delete
+                </button>
+                <button type="button" onClick={() => setConfirmingDelete(false)} className="text-xs text-gray-500 dark:text-gray-400">
+                  Cancel
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </td>

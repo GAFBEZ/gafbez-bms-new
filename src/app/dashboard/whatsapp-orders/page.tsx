@@ -1,6 +1,7 @@
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getWhatsAppOrders } from "@/lib/whatsappOrders";
+import { getCurrentUser } from "@/lib/auth";
 import WhatsAppOrderRow from "@/components/whatsappOrders/WhatsAppOrderRow";
 
 /** The "Continue on WhatsApp" checkout path creates an order with no
@@ -12,7 +13,8 @@ import WhatsAppOrderRow from "@/components/whatsappOrders/WhatsAppOrderRow";
  * the full log, not just the pending queue. Visible to every branch's
  * staff, same audience as Daily Sales. */
 export default async function WhatsAppOrdersPage() {
-  const orders = await getWhatsAppOrders();
+  const [orders, user] = await Promise.all([getWhatsAppOrders(), getCurrentUser()]);
+  const isAdmin = user?.role === "admin";
 
   return (
     <div className="flex flex-col gap-6">
@@ -40,7 +42,7 @@ export default async function WhatsAppOrdersPage() {
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
               {orders.map((order) => (
-                <WhatsAppOrderRow key={order.id} order={order} />
+                <WhatsAppOrderRow key={order.id} order={order} isAdmin={isAdmin} />
               ))}
             </tbody>
           </table>
