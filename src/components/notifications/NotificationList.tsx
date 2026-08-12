@@ -59,7 +59,7 @@ export function NotificationList({ notifications }: NotificationListProps) {
               <Icon className="h-4 w-4" aria-hidden="true" />
             </span>
             <div className="flex-1">
-              <p className="text-sm text-gray-800 dark:text-gray-200">{notification.message}</p>
+              <p className="whitespace-pre-line text-sm text-gray-800 dark:text-gray-200">{notification.message}</p>
               <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
                 {new Date(notification.createdAt).toLocaleString("en-NG", {
                   day: "numeric",

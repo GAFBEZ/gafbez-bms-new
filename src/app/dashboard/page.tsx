@@ -132,7 +132,10 @@ export default async function DashboardPage() {
     ? liveNotifications.map((notification) => ({
         id: notification.id,
         type: notification.type,
-        message: notification.message,
+        // Order-creation notifications are multi-line (customer/items/
+        // total) -- this compact widget shows only the headline; the
+        // full detail is on /dashboard/notifications.
+        message: notification.message.split("\n")[0],
         timeLabel: new Date(notification.createdAt).toLocaleString("en-NG", {
           day: "numeric",
           month: "short",
