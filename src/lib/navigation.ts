@@ -13,6 +13,7 @@ import {
   Undo2,
   Images,
   HardHat,
+  MessageCircle,
 } from "lucide-react";
 import type { NavItem } from "@/types";
 
@@ -30,6 +31,7 @@ export const navItems: NavItem[] = [
     icon: BookOpenText,
   },
   { label: "Daily Sales", href: "/dashboard/daily-sales", icon: Receipt },
+  { label: "WhatsApp Orders", href: "/dashboard/whatsapp-orders", icon: MessageCircle },
   { label: "Customers", href: "/dashboard/customers", icon: Users },
   { label: "Expenses", href: "/dashboard/expenses", icon: Wallet },
   { label: "Documents", href: "/dashboard/documents", icon: FileText },
