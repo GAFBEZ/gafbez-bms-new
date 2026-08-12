@@ -496,16 +496,22 @@ export interface WhatsAppOrderItem {
   lineTotal: number;
 }
 
-/** A public.orders row with status = 'whatsapp_review_required' -- the
+export type WhatsAppOrderStatus = "whatsapp_review_required" | "whatsapp_confirmed" | "completed" | "cancelled" | "expired";
+
+/** A public.orders row where order_type = 'whatsapp_request' -- the
  * "Continue on WhatsApp" checkout path, where the customer's chat with
- * staff happens outside this app entirely, but staff still need to
- * confirm_whatsapp_order() (locks in stock, moves to whatsapp_confirmed)
- * or reject_whatsapp_order() here once they've agreed availability/
- * payment over WhatsApp -- see 0030_orders_and_payments.sql. Only ever
- * the pending queue; a confirmed/rejected order drops off this list. */
+ * staff happens outside this app entirely, but staff still record each
+ * step here: confirm_whatsapp_order() (locks in stock, moves to
+ * whatsapp_confirmed) or reject_whatsapp_order(), then
+ * mark_whatsapp_order_paid() once the customer actually pays and picks
+ * up -- see 0030_orders_and_payments.sql / 0049_mark_whatsapp_order_
+ * paid.sql. Every WhatsApp order stays on this list regardless of
+ * status, most recent first -- it's the full log, not just the queue. */
 export interface WhatsAppOrder {
   id: string;
   orderNumber: string;
+  status: WhatsAppOrderStatus;
+  paymentStatus: string;
   customerName: string;
   customerPhone: string | null;
   customerEmail: string;
@@ -513,6 +519,7 @@ export interface WhatsAppOrder {
   branchName: string;
   subtotal: number;
   createdAt: string;
+  cancellationReason: string | null;
   items: WhatsAppOrderItem[];
 }
 

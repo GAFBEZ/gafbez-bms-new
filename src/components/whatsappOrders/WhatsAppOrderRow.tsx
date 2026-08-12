@@ -3,11 +3,27 @@
 import { useState, useTransition } from "react";
 import type { WhatsAppOrder } from "@/types";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { confirmWhatsAppOrder, rejectWhatsAppOrder } from "@/app/dashboard/whatsapp-orders/actions";
+import { confirmWhatsAppOrder, rejectWhatsAppOrder, markWhatsAppOrderPaid } from "@/app/dashboard/whatsapp-orders/actions";
 
 interface WhatsAppOrderRowProps {
   order: WhatsAppOrder;
 }
+
+const STATUS_STYLES: Record<WhatsAppOrder["status"], string> = {
+  whatsapp_review_required: "bg-brand-gold-soft text-amber-700 dark:text-amber-400",
+  whatsapp_confirmed: "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400",
+  completed: "bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400",
+  cancelled: "bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400",
+  expired: "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400",
+};
+
+const STATUS_LABELS: Record<WhatsAppOrder["status"], string> = {
+  whatsapp_review_required: "awaiting review",
+  whatsapp_confirmed: "confirmed",
+  completed: "paid & completed",
+  cancelled: "rejected",
+  expired: "expired",
+};
 
 export default function WhatsAppOrderRow({ order }: WhatsAppOrderRowProps) {
   const [isPending, startTransition] = useTransition();
@@ -22,6 +38,9 @@ export default function WhatsAppOrderRow({ order }: WhatsAppOrderRowProps) {
       setError(result.error);
     });
   }
+
+  const isPendingReview = order.status === "whatsapp_review_required";
+  const isConfirmedUnpaid = order.status === "whatsapp_confirmed" && order.paymentStatus !== "successful";
 
   return (
     <tr>
@@ -43,12 +62,17 @@ export default function WhatsAppOrderRow({ order }: WhatsAppOrderRowProps) {
         </ul>
       </td>
       <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">{formatCurrency(order.subtotal)}</td>
+      <td className="px-4 py-3">
+        <span className={`w-fit rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${STATUS_STYLES[order.status]}`}>
+          {STATUS_LABELS[order.status]}
+        </span>
+      </td>
       <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{formatDate(order.createdAt)}</td>
       <td className="px-4 py-3">
         <div className="flex flex-col gap-2">
           {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
 
-          {!rejecting && (
+          {isPendingReview && !rejecting && (
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
@@ -62,6 +86,17 @@ export default function WhatsAppOrderRow({ order }: WhatsAppOrderRowProps) {
                 Reject
               </button>
             </div>
+          )}
+
+          {isConfirmedUnpaid && (
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={() => run(() => markWhatsAppOrderPaid(order.id))}
+              className="w-fit rounded-lg bg-brand-green px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+            >
+              Mark as Paid
+            </button>
           )}
 
           {rejecting && (
@@ -86,6 +121,10 @@ export default function WhatsAppOrderRow({ order }: WhatsAppOrderRowProps) {
                 </button>
               </div>
             </div>
+          )}
+
+          {order.status === "cancelled" && order.cancellationReason && (
+            <p className="text-xs text-gray-500 dark:text-gray-400">{order.cancellationReason}</p>
           )}
         </div>
       </td>

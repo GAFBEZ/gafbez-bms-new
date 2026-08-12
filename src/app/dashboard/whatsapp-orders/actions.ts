@@ -29,3 +29,13 @@ export async function rejectWhatsAppOrder(orderId: string, reason: string): Prom
   revalidate();
   return { error: error?.message ?? null };
 }
+
+/** Records that the customer actually paid and picked up -- moves a
+ * confirmed order to payment_status='successful', status='completed'.
+ * See mark_whatsapp_order_paid in 0049_mark_whatsapp_order_paid.sql. */
+export async function markWhatsAppOrderPaid(orderId: string): Promise<{ error: string | null }> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("mark_whatsapp_order_paid", { p_order_id: orderId });
+  revalidate();
+  return { error: error?.message ?? null };
+}
