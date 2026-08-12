@@ -3,7 +3,13 @@
 import { useState, useTransition } from "react";
 import type { WhatsAppOrder } from "@/types";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { confirmWhatsAppOrder, rejectWhatsAppOrder, markWhatsAppOrderPaid, deleteWhatsAppOrder } from "@/app/dashboard/whatsapp-orders/actions";
+import {
+  confirmWhatsAppOrder,
+  rejectWhatsAppOrder,
+  markWhatsAppOrderPaid,
+  cancelConfirmedWhatsAppOrder,
+  deleteWhatsAppOrder,
+} from "@/app/dashboard/whatsapp-orders/actions";
 
 interface WhatsAppOrderRowProps {
   order: WhatsAppOrder;
@@ -30,6 +36,7 @@ export default function WhatsAppOrderRow({ order, isAdmin }: WhatsAppOrderRowPro
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [rejecting, setRejecting] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [reason, setReason] = useState("");
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
@@ -91,15 +98,48 @@ export default function WhatsAppOrderRow({ order, isAdmin }: WhatsAppOrderRowPro
             </div>
           )}
 
-          {isConfirmedUnpaid && (
-            <button
-              type="button"
-              disabled={isPending}
-              onClick={() => run(() => markWhatsAppOrderPaid(order.id))}
-              className="w-fit rounded-lg bg-brand-green px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
-            >
-              Mark as Paid
-            </button>
+          {isConfirmedUnpaid && !cancelling && (
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={() => run(() => markWhatsAppOrderPaid(order.id))}
+                className="rounded-lg bg-brand-green px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+              >
+                Mark as Paid
+              </button>
+              <button
+                type="button"
+                onClick={() => setCancelling(true)}
+                className="rounded-lg border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-600"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+
+          {cancelling && (
+            <div className="flex flex-col gap-1.5">
+              <input
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Reason (optional)"
+                className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-2 py-1 text-xs"
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => run(() => cancelConfirmedWhatsAppOrder(order.id, reason))}
+                  className="rounded-lg bg-red-600 px-3 py-1 text-xs font-semibold text-white disabled:opacity-60"
+                >
+                  Confirm Cancel
+                </button>
+                <button type="button" onClick={() => setCancelling(false)} className="text-xs text-gray-500 dark:text-gray-400">
+                  Back
+                </button>
+              </div>
+            </div>
           )}
 
           {rejecting && (

@@ -40,6 +40,17 @@ export async function markWhatsAppOrderPaid(orderId: string): Promise<{ error: s
   return { error: error?.message ?? null };
 }
 
+/** For a request that's already confirmed (stock reserved) but not yet
+ * paid -- releases the reservation immediately instead of waiting out the
+ * reservation window. See cancel_confirmed_whatsapp_order in
+ * 0053_cancel_confirmed_whatsapp_order.sql. */
+export async function cancelConfirmedWhatsAppOrder(orderId: string, reason: string): Promise<{ error: string | null }> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("cancel_confirmed_whatsapp_order", { p_order_id: orderId, p_reason: reason });
+  revalidate();
+  return { error: error?.message ?? null };
+}
+
 /** Admin-only, and only for rejected/expired requests -- see
  * delete_whatsapp_order in 0051_admin_delete_whatsapp_order.sql for the
  * exact status gate this enforces server-side regardless of what the UI
