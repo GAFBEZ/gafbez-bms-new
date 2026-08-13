@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ReturnItemForm } from "@/components/sales/ReturnItemForm";
 import { getSale } from "@/lib/sales";
@@ -29,6 +30,10 @@ export default async function SaleDetailPage({
 
   return (
     <div className="flex flex-col gap-6">
+      <Link href="/dashboard/daily-sales" className="text-sm font-semibold text-brand-green dark:text-emerald-400">
+        ← Back to Daily Sales
+      </Link>
+
       <PageHeader
         title={sale.customerName ?? "Walk-in customer"}
         description={`${sale.branchName} · ${formatDate(sale.createdAt)} at ${formatTime(sale.createdAt)}`}
