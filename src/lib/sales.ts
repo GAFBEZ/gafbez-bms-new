@@ -5,6 +5,7 @@ import type { Sale, SaleDetail, SaleStatus } from "@/types";
 interface SaleRow {
   id: string;
   customer_id: string | null;
+  customer_name: string | null;
   branch_id: string;
   total_amount: number;
   amount_paid: number;
@@ -20,7 +21,7 @@ function mapRow(row: SaleRow, staffNames: Record<string, string>): Sale {
   return {
     id: row.id,
     customerId: row.customer_id,
-    customerName: row.customers?.name ?? null,
+    customerName: row.customer_name ?? row.customers?.name ?? null,
     branchId: row.branch_id,
     branchName: row.branches?.name ?? "Unknown branch",
     totalAmount: Number(row.total_amount),
@@ -33,7 +34,7 @@ function mapRow(row: SaleRow, staffNames: Record<string, string>): Sale {
 }
 
 const SELECT_WITH_JOINS =
-  "id, customer_id, branch_id, total_amount, amount_paid, status, created_at, created_by, customers(name), branches(name), sale_items(count)";
+  "id, customer_id, customer_name, branch_id, total_amount, amount_paid, status, created_at, created_by, customers(name), branches(name), sale_items(count)";
 
 /**
  * Returns null if the query fails (e.g. migration not run yet). Pass
@@ -73,6 +74,7 @@ export async function getSales(
 interface SaleDetailRow {
   id: string;
   customer_id: string | null;
+  customer_name: string | null;
   branch_id: string;
   total_amount: number;
   amount_paid: number;
@@ -95,7 +97,7 @@ export async function getSale(id: string): Promise<SaleDetail | null> {
   const { data, error } = await supabase
     .from("sales")
     .select(
-      `id, customer_id, branch_id, total_amount, amount_paid, status, created_at,
+      `id, customer_id, customer_name, branch_id, total_amount, amount_paid, status, created_at,
        customers(name), branches(name),
        sale_items(id, product_id, quantity, unit_price, products(name, sku), sale_returns(quantity))`,
     )
@@ -109,7 +111,7 @@ export async function getSale(id: string): Promise<SaleDetail | null> {
   return {
     id: row.id,
     customerId: row.customer_id,
-    customerName: row.customers?.name ?? null,
+    customerName: row.customer_name ?? row.customers?.name ?? null,
     branchId: row.branch_id,
     branchName: row.branches?.name ?? "Unknown branch",
     totalAmount: Number(row.total_amount),
