@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Product, ProductWebsiteDetails } from "@/types";
+import type { BonusCategory, Product, ProductWebsiteDetails } from "@/types";
 
 export interface ProductRow {
   id: string;
@@ -12,6 +12,7 @@ export interface ProductRow {
   quantity_in_stock: number;
   reorder_level: number;
   supplier: string | null;
+  bonus_category: BonusCategory | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -34,7 +35,7 @@ export interface ProductRow {
 }
 
 const PRODUCT_COLUMNS =
-  "id, sku, name, category, unit, cost_price, selling_price, quantity_in_stock, reorder_level, supplier, is_active, created_at, updated_at, brand, model, short_description, full_description, website_price, website_slug, product_image_url, gallery_image_urls, specifications, warranty_text, is_visible_on_website, is_featured_on_website, website_display_order, is_combo_eligible, calculator_eligible";
+  "id, sku, name, category, unit, cost_price, selling_price, quantity_in_stock, reorder_level, supplier, bonus_category, is_active, created_at, updated_at, brand, model, short_description, full_description, website_price, website_slug, product_image_url, gallery_image_urls, specifications, warranty_text, is_visible_on_website, is_featured_on_website, website_display_order, is_combo_eligible, calculator_eligible";
 
 function mapWebsiteDetails(row: ProductRow): ProductWebsiteDetails {
   return {
@@ -73,6 +74,7 @@ export function mapRow(row: ProductRow, branchId: string): Product {
     specialOrderQuantity,
     reorderLevel: row.reorder_level,
     supplier: row.supplier,
+    bonusCategory: row.bonus_category,
     isActive: row.is_active,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

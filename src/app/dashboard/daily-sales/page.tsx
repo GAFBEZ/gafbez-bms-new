@@ -15,6 +15,7 @@ import {
   rangeToWindow,
   type DateWindow,
 } from "@/lib/salesTracker";
+import { getBonusRates, getStaffBonusSummary, monthToWindow, currentMonth } from "@/lib/staffBonus";
 
 type RangeKey = "7d" | "30d" | "90d" | "all";
 
@@ -55,12 +56,18 @@ function formatDate(date: Date): string {
  * page -- only relocated here so those Links can point at this route
  * instead.
  */
+const MONTH_LABEL_FORMATTER = new Intl.DateTimeFormat("en-NG", { month: "long", year: "numeric" });
+
+function isMonthParam(value: string | undefined): value is string {
+  return Boolean(value && /^\d{4}-\d{2}$/.test(value));
+}
+
 export default async function DailySalesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ range?: string; from?: string; to?: string; staff?: string }>;
+  searchParams: Promise<{ range?: string; from?: string; to?: string; staff?: string; tab?: string; month?: string }>;
 }) {
-  const { range: rawRange, from: rawFrom, to: rawTo, staff: rawStaff } = await searchParams;
+  const { range: rawRange, from: rawFrom, to: rawTo, staff: rawStaff, tab: rawTab, month: rawMonth } = await searchParams;
 
   const parsedFrom = parseDateParam(rawFrom);
   const parsedTo = parseDateParam(rawTo);
@@ -94,27 +101,42 @@ export default async function DailySalesPage({
   // simply ignored rather than applied.
   const staffId = isAdmin && rawStaff ? rawStaff : null;
 
-  const [sales, branches, staffOptions, summary, byBranch, byStaff, topProducts, trend] = await Promise.all([
-    getSales(100, activeBranchId),
-    getBranches(),
-    isAdmin ? getStaffOptions() : Promise.resolve([]),
-    getSalesSummary(window, staffId ?? undefined),
-    getSalesByBranch(window, staffId ?? undefined),
-    isAdmin ? getSalesByStaff(window) : Promise.resolve(null),
-    getTopProducts(window, 8, staffId ?? undefined),
-    getSalesTrend(trendWindow, staffId ?? undefined),
-  ]);
+  // Staff Bonus is personal to whoever's logged in when they're not an
+  // admin -- a non-admin's own user id, never a value from the URL, so
+  // there's no way to view a coworker's bonus by editing the query
+  // string (unlike the Sales Tracker staff slicer above, which is
+  // already admin-only).
+  const bonusMonth = isMonthParam(rawMonth) ? rawMonth : currentMonth();
+  const bonusWindow = monthToWindow(bonusMonth);
+  const bonusMonthLabel = MONTH_LABEL_FORMATTER.format(bonusWindow.since);
+  const bonusStaffId = isAdmin ? undefined : user?.id;
+
+  const [sales, branches, staffOptions, summary, byBranch, byStaff, topProducts, trend, bonusRates, bonusSummaries] =
+    await Promise.all([
+      getSales(100, activeBranchId),
+      getBranches(),
+      isAdmin ? getStaffOptions() : Promise.resolve([]),
+      getSalesSummary(window, staffId ?? undefined),
+      getSalesByBranch(window, staffId ?? undefined),
+      isAdmin ? getSalesByStaff(window) : Promise.resolve(null),
+      getTopProducts(window, 8, staffId ?? undefined),
+      getSalesTrend(trendWindow, staffId ?? undefined),
+      getBonusRates(),
+      getStaffBonusSummary(bonusWindow, bonusStaffId),
+    ]);
 
   const dataIsLive = summary !== null && byBranch !== null && topProducts !== null && trend !== null;
+  const bonusDataIsLive = bonusRates !== null && bonusSummaries !== null;
   const activeBranchName = branches.find((b) => b.id === activeBranchId)?.name;
   const hasTrackerParams = Boolean(rawRange || rawFrom || rawTo || rawStaff);
   const staffName = staffId ? (staffOptions.find((s) => s.id === staffId)?.name ?? "Former staff member") : null;
+  const initialTab = rawTab === "bonus" ? "bonus" : hasTrackerParams ? "tracker" : "daily";
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Daily Sales" description="Record and review sales, and analyse trends and branch performance over time." />
       <SalesTabs
-        initialTab={hasTrackerParams ? "tracker" : "daily"}
+        initialTab={initialTab}
         sales={sales ?? []}
         activeBranchId={activeBranchId}
         activeBranchName={activeBranchName}
@@ -133,6 +155,11 @@ export default async function DailySalesPage({
         staffId={staffId}
         staffName={staffName}
         staffOptions={staffOptions}
+        bonusMonth={bonusMonth}
+        bonusMonthLabel={bonusMonthLabel}
+        bonusRates={bonusRates}
+        bonusSummaries={bonusSummaries}
+        bonusDataIsLive={bonusDataIsLive}
       />
     </div>
   );

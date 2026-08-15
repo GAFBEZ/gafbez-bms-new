@@ -13,6 +13,7 @@ function makeRow(overrides: Partial<ProductRow> = {}): ProductRow {
     quantity_in_stock: 12,
     reorder_level: 3,
     supplier: "Cworth",
+    bonus_category: null,
     is_active: true,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",

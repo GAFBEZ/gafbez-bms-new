@@ -13,9 +13,19 @@ import { TopProductsChart } from "@/components/sales/TopProductsChart";
 import { SalesTrendChart } from "@/components/sales/SalesTrendChart";
 import { SalesDateFilter } from "@/components/sales/SalesDateFilter";
 import { SalesStaffFilter } from "@/components/sales/SalesStaffFilter";
+import { StaffBonusPanel } from "@/components/sales/StaffBonusPanel";
 import { formatCurrency } from "@/lib/format";
 import { DASHBOARD_PALETTE } from "@/lib/palette";
-import type { Sale, BranchSalesSummary, StaffSalesSummary, TopProductSummary, SalesTrendPoint, SalesSummary } from "@/types";
+import type {
+  Sale,
+  BranchSalesSummary,
+  StaffSalesSummary,
+  TopProductSummary,
+  SalesTrendPoint,
+  SalesSummary,
+  BonusRates,
+  StaffBonusSummary,
+} from "@/types";
 
 type RangeKey = "7d" | "30d" | "90d" | "all";
 
@@ -27,7 +37,7 @@ const RANGE_LABELS: Record<RangeKey, string> = {
 };
 
 interface SalesTabsProps {
-  initialTab: "daily" | "tracker";
+  initialTab: "daily" | "tracker" | "bonus";
   // Daily Sales tab
   sales: Sale[];
   activeBranchId: string;
@@ -49,6 +59,12 @@ interface SalesTabsProps {
   staffId: string | null;
   staffName: string | null;
   staffOptions: { id: string; name: string }[];
+  // Staff Bonus tab
+  bonusMonth: string;
+  bonusMonthLabel: string;
+  bonusRates: BonusRates | null;
+  bonusSummaries: StaffBonusSummary[] | null;
+  bonusDataIsLive: boolean;
 }
 
 /**
@@ -84,10 +100,16 @@ export function SalesTabs({
   staffId,
   staffName,
   staffOptions,
+  bonusMonth,
+  bonusMonthLabel,
+  bonusRates,
+  bonusSummaries,
+  bonusDataIsLive,
 }: SalesTabsProps) {
-  const [activeTab, setActiveTab] = useState<"daily" | "tracker">(initialTab);
+  const [activeTab, setActiveTab] = useState<"daily" | "tracker" | "bonus">(initialTab);
   const dailyTabId = useId();
   const trackerTabId = useId();
+  const bonusTabId = useId();
 
   return (
     <div className="flex flex-col gap-5">
@@ -98,6 +120,9 @@ export function SalesTabs({
           </TabButton>
           <TabButton id={trackerTabId} isActive={activeTab === "tracker"} ariaControls="sales-tracker-panel" onClick={() => setActiveTab("tracker")}>
             Sales Tracker
+          </TabButton>
+          <TabButton id={bonusTabId} isActive={activeTab === "bonus"} ariaControls="staff-bonus-panel" onClick={() => setActiveTab("bonus")}>
+            Staff Bonus
           </TabButton>
         </div>
 
@@ -214,6 +239,17 @@ export function SalesTabs({
         <DashboardSection title={staffName ? `Daily Sales Trend — ${staffName}` : "Daily Sales Trend"}>
           <SalesTrendChart data={trend ?? []} />
         </DashboardSection>
+      </div>
+
+      <div id="staff-bonus-panel" role="tabpanel" aria-labelledby={bonusTabId} hidden={activeTab !== "bonus"}>
+        <StaffBonusPanel
+          isAdmin={isAdmin}
+          month={bonusMonth}
+          monthLabel={bonusMonthLabel}
+          rates={bonusRates}
+          summaries={bonusSummaries}
+          dataIsLive={bonusDataIsLive}
+        />
       </div>
     </div>
   );

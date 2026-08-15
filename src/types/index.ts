@@ -107,9 +107,31 @@ export interface Product {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  /** Which staff-bonus bucket this product counts toward -- see
+   * 0056_staff_bonus.sql. Null means it never earns a bonus. */
+  bonusCategory: BonusCategory | null;
   /** Website Catalogue fields (Stage 2). Owner/Admin only, both to read
    * (cost/margin stay out of this object entirely) and to edit. */
   website: ProductWebsiteDetails;
+}
+
+export type BonusCategory = "solar_panel" | "inverter" | "battery";
+
+export type BonusRates = Record<BonusCategory, number>;
+
+export interface StaffBonusCategoryBreakdown {
+  category: BonusCategory;
+  quantity: number;
+  rate: number;
+  bonus: number;
+}
+
+export interface StaffBonusSummary {
+  staffId: string | null;
+  staffName: string;
+  breakdown: StaffBonusCategoryBreakdown[];
+  totalItems: number;
+  totalBonus: number;
 }
 
 /** A single row in the Specification Editor (Inventory Master's Website

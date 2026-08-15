@@ -37,6 +37,7 @@ export function ProductForm({
   const skuId = useId();
   const nameId = useId();
   const categoryId = useId();
+  const bonusCategoryId = useId();
   const unitId = useId();
   const costId = useId();
   const sellingId = useId();
@@ -92,6 +93,26 @@ export function ProductForm({
             placeholder="Solar Panels"
             className={inputClasses}
           />
+        </div>
+
+        <div>
+          <label htmlFor={bonusCategoryId} className={labelClasses}>
+            Bonus category <span className="font-normal text-gray-400 dark:text-gray-500">(optional)</span>
+          </label>
+          <select
+            id={bonusCategoryId}
+            name="bonusCategory"
+            defaultValue={initialValues?.bonusCategory ?? ""}
+            className={inputClasses}
+          >
+            <option value="">None -- doesn&apos;t earn a bonus</option>
+            <option value="solar_panel">Solar Panel</option>
+            <option value="inverter">Inverter</option>
+            <option value="battery">Battery</option>
+          </select>
+          <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+            Which Staff Bonus bucket this product counts toward on the Daily Sales page.
+          </p>
         </div>
 
         <div>

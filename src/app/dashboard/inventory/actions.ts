@@ -6,10 +6,17 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getProduct } from "@/lib/products";
 import { slugify } from "@/lib/slug";
-import type { ProductWebsiteDetails } from "@/types";
+import type { BonusCategory, ProductWebsiteDetails } from "@/types";
 
 export interface ProductFormState {
   error: string | null;
+}
+
+const BONUS_CATEGORIES: BonusCategory[] = ["solar_panel", "inverter", "battery"];
+
+function parseBonusCategory(formData: FormData): BonusCategory | null {
+  const raw = String(formData.get("bonusCategory") ?? "");
+  return (BONUS_CATEGORIES as string[]).includes(raw) ? (raw as BonusCategory) : null;
 }
 
 interface ParsedProductMetadata {
@@ -21,6 +28,7 @@ interface ParsedProductMetadata {
   sellingPrice: number;
   reorderLevel: number;
   supplier: string | null;
+  bonusCategory: BonusCategory | null;
   isActive: boolean;
 }
 
@@ -33,6 +41,7 @@ function parseProductMetadata(formData: FormData): ParsedProductMetadata | null 
   const sellingPrice = Number(formData.get("sellingPrice"));
   const reorderLevel = Number(formData.get("reorderLevel"));
   const supplier = String(formData.get("supplier") ?? "").trim() || null;
+  const bonusCategory = parseBonusCategory(formData);
   const isActive = formData.get("isActive") === "on";
 
   if (!sku || !name || !category) return null;
@@ -40,7 +49,7 @@ function parseProductMetadata(formData: FormData): ParsedProductMetadata | null 
     return null;
   }
 
-  return { sku, name, category, unit, costPrice, sellingPrice, reorderLevel, supplier, isActive };
+  return { sku, name, category, unit, costPrice, sellingPrice, reorderLevel, supplier, bonusCategory, isActive };
 }
 
 export async function createProduct(
@@ -71,6 +80,7 @@ export async function createProduct(
     p_is_active: parsed.isActive,
     p_branch_id: branchId,
     p_supplier: parsed.supplier,
+    p_bonus_category: parsed.bonusCategory,
   });
 
   if (error) {
@@ -109,6 +119,7 @@ export async function updateProduct(
     p_reorder_level: parsed.reorderLevel,
     p_is_active: parsed.isActive,
     p_supplier: parsed.supplier,
+    p_bonus_category: parsed.bonusCategory,
   });
 
   if (error) {
