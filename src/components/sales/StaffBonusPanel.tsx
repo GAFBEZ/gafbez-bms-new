@@ -40,7 +40,23 @@ export function StaffBonusPanel({ isAdmin, month, monthLabel, rates, summaries, 
         <BonusMonthFilter month={month} />
       </div>
 
-      {isAdmin && rates && <BonusRatesForm rates={rates} />}
+      {rates &&
+        (isAdmin ? (
+          <BonusRatesForm rates={rates} />
+        ) : (
+          <div className="rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm">
+            <p className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">Bonus per item sold</p>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {CATEGORY_ORDER.map((category) => (
+                <div key={category}>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{CATEGORY_LABELS[category]}</p>
+                  <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{formatCurrency(rates[category])}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-gray-400 dark:text-gray-500">Set by an Admin -- only Admin accounts can change these.</p>
+          </div>
+        ))}
 
       {!summaries || summaries.length === 0 ? (
         <EmptyState
