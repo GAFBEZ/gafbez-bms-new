@@ -10,7 +10,9 @@ import QuoteDetailsFields from "./QuoteDetailsFields";
 import LineItemsTable, { type LineItemCatalogueOption } from "./LineItemsTable";
 import QuoteTotals from "./QuoteTotals";
 import BusinessHeader, { type QuoteBranding } from "./BusinessHeader";
-import TermsPaymentFooter from "./TermsPaymentFooter";
+import PaymentDetails from "./PaymentDetails";
+import TermsWarranty from "./TermsWarranty";
+import QuoteFooterContact from "./QuoteFooterContact";
 import LoadCalculator from "./LoadCalculator";
 import {
   deleteQuoteTemplate,
@@ -269,7 +271,7 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
       </div>
 
       <div className={CARD_CLASSES}>
-        <BusinessHeader branding={branding} />
+        <BusinessHeader branding={branding} systemType={systemType} />
 
         <div className="my-5">
           <QuoteDetailsFields
@@ -325,16 +327,15 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
         <div className="mt-5">
           <QuoteTotals subtotal={subtotal} vatPercent={vatPercent} onVatPercentChange={setVatPercent} grandTotal={grandTotal} />
         </div>
+
+        <PaymentDetails paymentDetails={branding.paymentDetails} />
       </div>
 
-      <TermsPaymentFooter
-        paymentDetails={branding.paymentDetails}
-        termsAndWarranty={branding.termsAndWarranty}
-        footerDetails={branding.footerDetails}
-        contact={{ phone: branding.phone, email: branding.email }}
-      />
+      <TermsWarranty termsAndWarranty={branding.termsAndWarranty} />
 
       <LoadCalculator value={loadCalc} onChange={setLoadCalc} systemType={systemType} onAutoFill={handleAutoFill} />
+
+      <QuoteFooterContact footerDetails={branding.footerDetails} contact={{ phone: branding.phone, email: branding.email }} />
 
       <div className="flex flex-wrap items-center gap-3 print:hidden">
         <button

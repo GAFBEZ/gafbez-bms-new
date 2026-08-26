@@ -66,4 +66,17 @@ body {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+
+  /* body's background/color come from --background/--foreground, which
+   * flip to near-black/near-white in dark mode (see .dark above). The
+   * Quote Builder's printed page is deliberately theme-independent "paper"
+   * (see BusinessHeader.tsx etc.), but body itself sits behind/around it
+   * and was never told the same thing -- any page area taller than the
+   * printed content (e.g. below the last section) showed the raw dark
+   * background as a solid black block. Forcing it here makes the paper
+   * illusion hold everywhere, not just inside the components. */
+  body {
+    background: #ffffff;
+    color: #17241d;
+  }
 }

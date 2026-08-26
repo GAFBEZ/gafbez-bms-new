@@ -83,8 +83,8 @@ export default function LoadCalculator({ value, onChange, systemType, onAutoFill
         hasContent ? "print:break-before-page" : "print:hidden"
       }`}
     >
-      <div className="flex flex-col items-center gap-2 border-b-2 border-brand-gold pb-2 text-center">
-        <h3 className="text-sm font-bold uppercase tracking-wide text-brand-green">
+      <div className="flex flex-col items-center gap-2 border-b-2 border-brand-gold pb-3 text-center">
+        <h3 className="text-lg font-bold uppercase tracking-wide text-brand-green">
           Load Calculator / Estimated Backup Overview
         </h3>
         <button
@@ -96,7 +96,7 @@ export default function LoadCalculator({ value, onChange, systemType, onAutoFill
         </button>
       </div>
 
-      <div className={`grid grid-cols-2 gap-3 print:gap-2 ${systemType === "full_system" ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
+      <div className={`mt-3 grid grid-cols-2 gap-3 print:mt-2 print:gap-2 ${systemType === "full_system" ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="inverterSize" className={labelClasses}>
             Inverter Size (kVA)
