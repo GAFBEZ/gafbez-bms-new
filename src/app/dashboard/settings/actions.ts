@@ -78,6 +78,36 @@ export async function updateBusinessProfile(
   return { error: null, success: true };
 }
 
+function optionalText(formData: FormData, name: string): string | null {
+  const value = String(formData.get(name) ?? "").trim();
+  return value === "" ? null : value;
+}
+
+export async function updateQuoteBranding(
+  _prevState: SettingsFormState,
+  formData: FormData,
+): Promise<SettingsFormState> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("app_settings")
+    .update({
+      quote_tagline: optionalText(formData, "quoteTagline"),
+      quote_services_line: optionalText(formData, "quoteServicesLine"),
+      quote_payment_details: optionalText(formData, "quotePaymentDetails"),
+      quote_terms_and_warranty: optionalText(formData, "quoteTermsAndWarranty"),
+      quote_footer_details: optionalText(formData, "quoteFooterDetails"),
+    })
+    .eq("id", true);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath("/dashboard/settings");
+  revalidatePath("/dashboard/quote-builder");
+  return { error: null, success: true };
+}
+
 const LOGO_PATH = "logo/current";
 const ALLOWED_LOGO_TYPES = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
 const MAX_LOGO_BYTES = 2 * 1024 * 1024;

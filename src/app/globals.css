@@ -55,3 +55,15 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+/* Chrome/most browsers skip background colors when printing/saving as PDF
+ * unless a page explicitly opts in -- without this, the Quote Builder's
+ * table header tint, zebra striping, and Grand Total highlight would
+ * silently disappear from the printed document regardless of how they're
+ * styled. */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

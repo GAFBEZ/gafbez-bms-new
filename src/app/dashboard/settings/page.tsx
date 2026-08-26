@@ -2,6 +2,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { ThemeToggle } from "@/components/settings/ThemeToggle";
 import { InventoryDefaultsForm } from "@/components/settings/InventoryDefaultsForm";
 import { BusinessProfileForm } from "@/components/settings/BusinessProfileForm";
+import { QuoteBrandingForm } from "@/components/settings/QuoteBrandingForm";
 import { LogoUploadForm } from "@/components/settings/LogoUploadForm";
 import { HeroImagesManager } from "@/components/settings/HeroImagesManager";
 import { BranchList } from "@/components/settings/BranchList";
@@ -62,6 +63,27 @@ export default async function SettingsPage() {
             <div className="mt-3">
               <LogoUploadForm logoUrl={appSettings.logoUrl} />
             </div>
+          </div>
+        </section>
+      )}
+
+      {isAdmin && (
+        <section className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            Quote Builder Details
+          </h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Tagline, payment details, terms & warranty, and footer text shown on quotes built
+            with the staff Quote Builder. Admin-only.
+          </p>
+          <div className="mt-4">
+            <QuoteBrandingForm
+              quoteTagline={appSettings.quoteTagline}
+              quoteServicesLine={appSettings.quoteServicesLine}
+              quotePaymentDetails={appSettings.quotePaymentDetails}
+              quoteTermsAndWarranty={appSettings.quoteTermsAndWarranty}
+              quoteFooterDetails={appSettings.quoteFooterDetails}
+            />
           </div>
         </section>
       )}

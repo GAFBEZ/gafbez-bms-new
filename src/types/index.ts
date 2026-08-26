@@ -646,3 +646,74 @@ export interface InstallationProject {
   createdAt: string;
   updatedAt: string;
 }
+
+// ---------------------------------------------------------------------
+// Quote Builder (shared `quotes`/`quote_saved_items`/`quote_templates`
+// tables from 0057/0060/0061 -- also used by the installer-facing builder
+// on the public website). owner_role is always "staff" for rows created
+// here; "installer" rows belong to the website and are never read here.
+// ---------------------------------------------------------------------
+
+export type QuoteSystemType = "full_system" | "inverter_only";
+
+export interface QuoteLineItem {
+  id: string;
+  productId: string | null;
+  name: string;
+  description: string;
+  quantity: number;
+  rate: number;
+}
+
+export interface LoadCalculatorAppliance {
+  id: string;
+  name: string;
+  wattage: number;
+  quantity: number;
+  dailyHours: number;
+}
+
+export interface QuoteLoadCalc {
+  inverterSizeKva: number | null;
+  batteryCapacityKwh: number | null;
+  solarArrayKw: number | null;
+  appliances: LoadCalculatorAppliance[];
+}
+
+/** A staff member's personal library of reusable custom line items,
+ * offered back as a pick option in the line-items table on later quotes. */
+export interface SavedQuoteItem {
+  id: string;
+  name: string;
+  description: string | null;
+  rate: number;
+}
+
+export interface Quote {
+  id: string;
+  ownerId: string;
+  ownerRole: "staff" | "installer";
+  systemType: QuoteSystemType;
+  quoteNumber: string | null;
+  quoteDate: string;
+  customerName: string | null;
+  customerAddress: string | null;
+  lineItems: QuoteLineItem[];
+  subtotal: number;
+  vatPercent: number;
+  grandTotal: number;
+  loadCalc: QuoteLoadCalc | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** A staff member's personal, reusable "starting point" quote per system
+ * type -- loaded into the builder to skip re-typing the same line items
+ * and load calc on a new customer's quote. */
+export interface QuoteTemplate {
+  id: string;
+  systemType: QuoteSystemType;
+  name: string;
+  lineItems: QuoteLineItem[];
+  loadCalc: QuoteLoadCalc | null;
+}
