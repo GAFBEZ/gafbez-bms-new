@@ -89,14 +89,14 @@ export default function LineItemsTable({
   return (
     <div className="flex flex-col gap-3">
       <div className="overflow-x-auto rounded-xl border border-gray-200 print:overflow-visible print:rounded-none print:border-brand-green/40">
-        <table className="min-w-full divide-y divide-gray-100 text-sm print:w-full print:table-fixed print:border-collapse print:divide-y-0">
+        <table className="min-w-full divide-y divide-gray-100 text-sm print:w-full print:table-fixed print:border-collapse print:divide-y-0 print:text-xs">
           <thead>
             <tr className="bg-amber-50 text-left text-xs font-bold uppercase tracking-wide text-brand-green">
-              <th className="px-3 py-2.5 print:border print:border-brand-green/30 print:px-2 print:py-1.5">Item</th>
-              <th className="px-3 py-2.5 print:border print:border-brand-green/30 print:px-2 print:py-1.5">Description</th>
-              <th className="w-20 px-3 py-2.5 print:w-14 print:border print:border-brand-green/30 print:px-2 print:py-1.5">Qty</th>
-              <th className="w-32 px-3 py-2.5 print:w-24 print:border print:border-brand-green/30 print:px-2 print:py-1.5">Rate</th>
-              <th className="w-32 px-3 py-2.5 print:w-28 print:border print:border-brand-green/30 print:px-2 print:py-1.5">Amount</th>
+              <th className="px-3 py-2.5 print:border print:border-brand-green/30 print:px-1.5 print:py-1">Item</th>
+              <th className="px-3 py-2.5 print:border print:border-brand-green/30 print:px-1.5 print:py-1">Description</th>
+              <th className="w-20 px-3 py-2.5 print:w-14 print:border print:border-brand-green/30 print:px-1.5 print:py-1">Qty</th>
+              <th className="w-32 px-3 py-2.5 print:w-24 print:border print:border-brand-green/30 print:px-1.5 print:py-1">Rate</th>
+              <th className="w-32 px-3 py-2.5 print:w-28 print:border print:border-brand-green/30 print:px-1.5 print:py-1">Amount</th>
               <th className="w-16 px-3 py-2.5 print:hidden" />
             </tr>
           </thead>
@@ -106,7 +106,7 @@ export default function LineItemsTable({
                 key={item.id}
                 className={`break-inside-avoid ${index % 2 === 1 ? "bg-gray-50 print:bg-gray-50" : ""}`}
               >
-                <td className="px-3 py-2 align-top print:border print:border-brand-green/20 print:px-2 print:py-1.5">
+                <td className="px-3 py-2 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-1">
                   <select
                     value={item.productId ? `${PRODUCT_PREFIX}${item.productId}` : CUSTOM_OPTION_VALUE}
                     onChange={(e) => handleSelect(item.id, e.target.value)}
@@ -139,7 +139,7 @@ export default function LineItemsTable({
                   />
                   <PrintValue className="font-semibold text-brand-green">{item.name || "--"}</PrintValue>
                 </td>
-                <td className="px-3 py-2 align-top print:border print:border-brand-green/20 print:px-2 print:py-1.5">
+                <td className="px-3 py-2 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-1">
                   <textarea
                     value={item.description}
                     onChange={(e) => updateItem(item.id, { description: e.target.value })}
@@ -149,7 +149,7 @@ export default function LineItemsTable({
                   />
                   <PrintValue className="text-black">{item.description || "--"}</PrintValue>
                 </td>
-                <td className="px-3 py-2 align-top print:border print:border-brand-green/20 print:px-2 print:py-1.5">
+                <td className="px-3 py-2 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-1">
                   <NumberInput
                     min={0}
                     value={item.quantity}
@@ -158,7 +158,7 @@ export default function LineItemsTable({
                   />
                   <PrintValue className="text-black">{item.quantity}</PrintValue>
                 </td>
-                <td className="px-3 py-2 align-top print:border print:border-brand-green/20 print:px-2 print:py-1.5">
+                <td className="px-3 py-2 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-1">
                   <NumberInput
                     min={0}
                     value={item.rate}
@@ -167,7 +167,7 @@ export default function LineItemsTable({
                   />
                   <PrintValue className="text-black">{formatCurrency(item.rate)}</PrintValue>
                 </td>
-                <td className="whitespace-nowrap px-3 py-2 align-top font-bold text-brand-green print:border print:border-brand-green/20 print:px-2 print:py-1.5">
+                <td className="whitespace-nowrap px-3 py-2 align-top font-bold text-brand-green print:border print:border-brand-green/20 print:px-1.5 print:py-1">
                   {formatCurrency(computeLineAmount(item))}
                 </td>
                 <td className="px-3 py-2 align-top print:hidden">

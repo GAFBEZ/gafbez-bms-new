@@ -33,8 +33,8 @@ export default function QuoteDetailsFields({
   onCustomerAddressChange,
 }: QuoteDetailsFieldsProps) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 print:gap-1.5 print:text-sm">
-      <div className="flex flex-col gap-1.5">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 print:gap-1 print:text-xs">
+      <div className="flex flex-col gap-1.5 print:gap-0">
         <label htmlFor="quoteNumber" className={labelClasses}>
           Quote Number
         </label>
@@ -49,7 +49,7 @@ export default function QuoteDetailsFields({
         <PrintValue className="text-black">{quoteNumber || "--"}</PrintValue>
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1.5 print:gap-0">
         <label htmlFor="quoteDate" className={labelClasses}>
           Quote Date
         </label>
@@ -63,7 +63,7 @@ export default function QuoteDetailsFields({
         <PrintValue className="text-black">{formatDate(quoteDate)}</PrintValue>
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1.5 print:gap-0">
         <label htmlFor="customerName" className={labelClasses}>
           Customer Name
         </label>
@@ -78,7 +78,7 @@ export default function QuoteDetailsFields({
         <PrintValue className="text-black">{customerName || "--"}</PrintValue>
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1.5 print:gap-0">
         <label htmlFor="customerAddress" className={labelClasses}>
           Customer Address / Location
         </label>

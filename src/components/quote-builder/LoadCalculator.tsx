@@ -107,7 +107,7 @@ export default function LoadCalculator({ value, onChange, systemType, onAutoFill
 
       <div className="flex flex-col items-center gap-2 border-b-2 border-brand-gold pb-3 text-center">
         <h3 className="text-lg font-bold uppercase tracking-wide text-brand-green">
-          Load Calculator / Estimated Backup Overview
+          Load Analysis / Estimated Backup Overview
         </h3>
         <button
           type="button"

@@ -31,7 +31,7 @@ interface QuoteBuilderProps {
   initialQuote?: Quote | null;
 }
 
-const CARD_CLASSES = "rounded-xl border border-gray-200 bg-white p-5 print:rounded-none print:border-2 print:border-brand-green/25 print:p-6";
+const CARD_CLASSES = "rounded-xl border border-gray-200 bg-white p-5 print:rounded-none print:border-2 print:border-brand-green/25 print:p-4";
 
 function emptyLoadCalc(): QuoteLoadCalc {
   return { inverterSizeKva: null, batteryCapacityKwh: null, solarArrayKw: null, appliances: [] };
@@ -276,7 +276,7 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
       <div className={CARD_CLASSES}>
         <BusinessHeader branding={branding} systemType={systemType} />
 
-        <div className="my-5">
+        <div className="my-5 print:my-2">
           <QuoteDetailsFields
             quoteNumber={quoteNumber}
             onQuoteNumberChange={setQuoteNumber}
@@ -327,7 +327,7 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
           </details>
         )}
 
-        <div className="mt-5">
+        <div className="mt-5 print:mt-2">
           <QuoteTotals subtotal={subtotal} vatPercent={vatPercent} onVatPercentChange={setVatPercent} grandTotal={grandTotal} />
         </div>
 
