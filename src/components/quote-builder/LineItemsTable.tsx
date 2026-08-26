@@ -92,6 +92,7 @@ export default function LineItemsTable({
         <table className="min-w-full divide-y divide-gray-100 text-sm print:w-full print:table-fixed print:border-collapse print:divide-y-0 print:text-xs">
           <thead>
             <tr className="bg-amber-50 text-left text-xs font-bold uppercase tracking-wide text-brand-green">
+              <th className="w-10 px-3 py-2.5 print:w-8 print:border print:border-brand-green/30 print:px-1.5 print:py-1">S/N</th>
               <th className="px-3 py-2.5 print:border print:border-brand-green/30 print:px-1.5 print:py-1">Item</th>
               <th className="px-3 py-2.5 print:border print:border-brand-green/30 print:px-1.5 print:py-1">Description</th>
               <th className="w-20 px-3 py-2.5 print:w-14 print:border print:border-brand-green/30 print:px-1.5 print:py-1">Qty</th>
@@ -106,6 +107,9 @@ export default function LineItemsTable({
                 key={item.id}
                 className={`break-inside-avoid ${index % 2 === 1 ? "bg-gray-50 print:bg-gray-50" : ""}`}
               >
+                <td className="px-3 py-2 align-top font-semibold text-black print:border print:border-brand-green/20 print:px-1.5 print:py-1">
+                  {index + 1}
+                </td>
                 <td className="px-3 py-2 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-1">
                   <select
                     value={item.productId ? `${PRODUCT_PREFIX}${item.productId}` : CUSTOM_OPTION_VALUE}
@@ -196,7 +200,7 @@ export default function LineItemsTable({
             ))}
             {items.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-sm text-gray-500 print:hidden">
+                <td colSpan={7} className="px-3 py-6 text-center text-sm text-gray-500 print:hidden">
                   No items yet -- add your first line below.
                 </td>
               </tr>

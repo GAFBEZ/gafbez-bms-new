@@ -176,6 +176,7 @@ export default function LoadCalculator({ value, onChange, systemType, onAutoFill
         <table className="min-w-full divide-y divide-gray-100 text-sm print:w-full print:table-fixed print:border-collapse print:divide-y-0">
           <thead>
             <tr className="bg-amber-50 text-left text-xs font-bold uppercase tracking-wide text-brand-green">
+              <th className="w-10 px-3 py-2 print:w-8 print:border print:border-brand-green/30 print:px-2 print:py-1">S/N</th>
               <th className="px-3 py-2 print:border print:border-brand-green/30 print:px-2 print:py-1">Appliance</th>
               <th className="w-24 px-3 py-2 print:border print:border-brand-green/30 print:px-2 print:py-1">Watts</th>
               <th className="w-20 px-3 py-2 print:border print:border-brand-green/30 print:px-2 print:py-1">Qty</th>
@@ -190,6 +191,9 @@ export default function LoadCalculator({ value, onChange, systemType, onAutoFill
                 key={appliance.id}
                 className={`break-inside-avoid ${index % 2 === 1 ? "bg-gray-50 print:bg-gray-50" : ""}`}
               >
+                <td className="px-3 py-2 font-semibold text-black print:border print:border-brand-green/20 print:px-2 print:py-1">
+                  {index + 1}
+                </td>
                 <td className="px-3 py-2 print:border print:border-brand-green/20 print:px-2 print:py-1">
                   <input
                     type="text"
