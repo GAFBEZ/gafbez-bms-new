@@ -2,6 +2,19 @@ import { Plus, Trash2 } from "lucide-react";
 import type { LoadCalculatorAppliance, QuoteLoadCalc, QuoteSystemType } from "@/types";
 import PrintValue from "./PrintValue";
 import NumberInput from "./NumberInput";
+import CompanyIdentity from "./CompanyIdentity";
+import type { QuoteBranding } from "./BusinessHeader";
+
+/** Most inverters are only ~80% efficient at converting their rated kVA
+ * into real usable watts (the rest is reactive power) -- this is the
+ * standard rule of thumb installers already use when sizing a system,
+ * not a config value staff need to tune per quote. */
+const INVERTER_POWER_FACTOR = 0.8;
+
+/** Lithium batteries are commonly specced to not discharge below 20% state
+ * of charge (to protect battery health/lifespan), so only 80% of rated
+ * capacity is treated as usable backup energy. */
+const USABLE_DOD_FRACTION = 0.8;
 
 const fieldClasses =
   "w-full rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-900 focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30 print:hidden";
@@ -39,6 +52,7 @@ interface LoadCalculatorProps {
   onChange: (value: QuoteLoadCalc) => void;
   systemType: QuoteSystemType;
   onAutoFill: () => void;
+  branding: QuoteBranding;
 }
 
 function newAppliance(): LoadCalculatorAppliance {
@@ -54,7 +68,7 @@ function StatCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-export default function LoadCalculator({ value, onChange, systemType, onAutoFill }: LoadCalculatorProps) {
+export default function LoadCalculator({ value, onChange, systemType, onAutoFill, branding }: LoadCalculatorProps) {
   const appliances = value.appliances;
   const hasContent = appliances.length > 0 || Boolean(value.inverterSizeKva || value.batteryCapacityKwh || value.solarArrayKw);
 
@@ -77,12 +91,20 @@ export default function LoadCalculator({ value, onChange, systemType, onAutoFill
   const totalLoadW = appliances.reduce((sum, a) => sum + a.wattage * a.quantity, 0);
   const totalDailyEnergyWh = appliances.reduce((sum, a) => sum + a.wattage * a.quantity * a.dailyHours, 0);
 
+  const approxInverterLimitW = value.inverterSizeKva ? value.inverterSizeKva * 1000 * INVERTER_POWER_FACTOR : null;
+  const usableBatteryEnergyWh = value.batteryCapacityKwh ? value.batteryCapacityKwh * 1000 * USABLE_DOD_FRACTION : null;
+  const estimatedBackupHours = usableBatteryEnergyWh && totalLoadW > 0 ? usableBatteryEnergyWh / totalLoadW : null;
+
   return (
     <div
       className={`flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-4 print:rounded-none print:border-none print:p-0 ${
         hasContent ? "print:break-before-page" : "print:hidden"
       }`}
     >
+      <div className="hidden print:flex print:flex-col print:items-center print:gap-2.5 print:border-b-4 print:border-brand-gold print:pb-2 print:text-center">
+        <CompanyIdentity branding={branding} />
+      </div>
+
       <div className="flex flex-col items-center gap-2 border-b-2 border-brand-gold pb-3 text-center">
         <h3 className="text-lg font-bold uppercase tracking-wide text-brand-green">
           Load Calculator / Estimated Backup Overview
@@ -255,12 +277,18 @@ export default function LoadCalculator({ value, onChange, systemType, onAutoFill
           Total Daily Energy: <strong className="text-gray-900">{(totalDailyEnergyWh / 1000).toFixed(2)} kWh</strong>
         </span>
       </div>
-      <div className="hidden print:block print:w-fit">
+      <div className="hidden grid-cols-2 gap-2 sm:grid-cols-4 print:grid">
         <StatCard label="Total Daily Energy" value={`${totalDailyEnergyWh.toLocaleString()} Wh`} />
+        <StatCard label="Approx. Inverter Limit" value={approxInverterLimitW ? `${Math.round(approxInverterLimitW).toLocaleString()} W` : "--"} />
+        <StatCard label="Usable Battery Energy" value={usableBatteryEnergyWh ? `${Math.round(usableBatteryEnergyWh).toLocaleString()} Wh` : "--"} />
+        <StatCard label="Estimated Backup Time" value={estimatedBackupHours ? `${estimatedBackupHours.toFixed(1)} hours` : "--"} />
       </div>
-      <p className="hidden text-[11px] text-gray-500 print:block">
-        This load analysis is an estimate for client guidance only. Actual runtime depends on battery state of charge,
-        inverter efficiency, starting surge of appliances, and usage pattern.
+      <p className="hidden text-[11px] text-gray-700 print:block">
+        <span className="font-bold text-red-600">NOTE:</span> This load analysis is an estimate for client guidance
+        only. Actual runtime depends on battery state of charge, depth of discharge setting, inverter efficiency,
+        starting surge of appliances, weather conditions and usage pattern. Heavy loads such as air conditioners,
+        heaters, pumping machines, pressing iron, microwave and kettles should be evaluated separately before final
+        approval.
       </p>
     </div>
   );

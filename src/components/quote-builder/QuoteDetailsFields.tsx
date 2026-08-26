@@ -2,7 +2,7 @@ import PrintValue from "./PrintValue";
 
 const fieldClasses =
   "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30 print:hidden";
-const labelClasses = "text-xs font-semibold text-gray-500";
+const labelClasses = "text-xs font-extrabold uppercase tracking-wide text-brand-gold";
 
 interface QuoteDetailsFieldsProps {
   quoteNumber: string;
@@ -46,7 +46,7 @@ export default function QuoteDetailsFields({
           placeholder="e.g. GB-0231"
           className={fieldClasses}
         />
-        <PrintValue className="text-gray-900">{quoteNumber || "--"}</PrintValue>
+        <PrintValue className="text-black">{quoteNumber || "--"}</PrintValue>
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -60,7 +60,7 @@ export default function QuoteDetailsFields({
           onChange={(e) => onQuoteDateChange(e.target.value)}
           className={fieldClasses}
         />
-        <PrintValue className="text-gray-900">{formatDate(quoteDate)}</PrintValue>
+        <PrintValue className="text-black">{formatDate(quoteDate)}</PrintValue>
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -75,7 +75,7 @@ export default function QuoteDetailsFields({
           placeholder="Who is this quote for?"
           className={fieldClasses}
         />
-        <PrintValue className="text-gray-900">{customerName || "--"}</PrintValue>
+        <PrintValue className="text-black">{customerName || "--"}</PrintValue>
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -90,7 +90,7 @@ export default function QuoteDetailsFields({
           placeholder="Site location"
           className={fieldClasses}
         />
-        <PrintValue className="text-gray-900">{customerAddress || "--"}</PrintValue>
+        <PrintValue className="text-black">{customerAddress || "--"}</PrintValue>
       </div>
     </div>
   );

@@ -67,6 +67,9 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
   const subtotal = useMemo(() => computeSubtotal(lineItems), [lineItems]);
   const grandTotal = useMemo(() => computeGrandTotal(subtotal, vatPercent), [subtotal, vatPercent]);
 
+  const hasLoadCalcContent =
+    loadCalc.appliances.length > 0 || Boolean(loadCalc.inverterSizeKva || loadCalc.batteryCapacityKwh || loadCalc.solarArrayKw);
+
   function handleAutoFill() {
     const result = autoFillLoadCalcFromLineItems(lineItems, bonusCategoryById);
     setLoadCalc((prev) => ({ ...prev, ...result }));
@@ -333,9 +336,22 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
 
       <TermsWarranty termsAndWarranty={branding.termsAndWarranty} />
 
-      <LoadCalculator value={loadCalc} onChange={setLoadCalc} systemType={systemType} onAutoFill={handleAutoFill} />
-
-      <QuoteFooterContact footerDetails={branding.footerDetails} contact={{ phone: branding.phone, email: branding.email }} />
+      <div
+        className={`flex flex-col ${
+          hasLoadCalcContent ? "print:flex print:min-h-[270mm] print:flex-col print:break-before-page" : ""
+        }`}
+      >
+        <LoadCalculator
+          value={loadCalc}
+          onChange={setLoadCalc}
+          systemType={systemType}
+          onAutoFill={handleAutoFill}
+          branding={branding}
+        />
+        <div className={hasLoadCalcContent ? "mt-auto" : "mt-5"}>
+          <QuoteFooterContact footerDetails={branding.footerDetails} />
+        </div>
+      </div>
 
       <div className="flex flex-wrap items-center gap-3 print:hidden">
         <button
