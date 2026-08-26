@@ -147,7 +147,7 @@ export default function LineItemsTable({
                     rows={2}
                     className={`${fieldClasses} resize-none`}
                   />
-                  <PrintValue className="text-gray-700">{item.description || "--"}</PrintValue>
+                  <PrintValue className="text-black">{item.description || "--"}</PrintValue>
                 </td>
                 <td className="px-3 py-2 align-top print:border print:border-brand-green/20 print:px-2 print:py-1.5">
                   <NumberInput
@@ -156,7 +156,7 @@ export default function LineItemsTable({
                     onChange={(quantity) => updateItem(item.id, { quantity })}
                     className={fieldClasses}
                   />
-                  <PrintValue className="text-gray-700">{item.quantity}</PrintValue>
+                  <PrintValue className="text-black">{item.quantity}</PrintValue>
                 </td>
                 <td className="px-3 py-2 align-top print:border print:border-brand-green/20 print:px-2 print:py-1.5">
                   <NumberInput
@@ -165,7 +165,7 @@ export default function LineItemsTable({
                     onChange={(rate) => updateItem(item.id, { rate })}
                     className={fieldClasses}
                   />
-                  <PrintValue className="text-gray-700">{formatCurrency(item.rate)}</PrintValue>
+                  <PrintValue className="text-black">{formatCurrency(item.rate)}</PrintValue>
                 </td>
                 <td className="whitespace-nowrap px-3 py-2 align-top font-bold text-brand-green print:border print:border-brand-green/20 print:px-2 print:py-1.5">
                   {formatCurrency(computeLineAmount(item))}

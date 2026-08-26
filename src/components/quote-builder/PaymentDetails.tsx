@@ -15,7 +15,7 @@ export default function PaymentDetails({ paymentDetails }: PaymentDetailsProps) 
   return (
     <div className="mt-5 border-t border-gray-200 pt-4 text-sm">
       <p className="mb-1.5 text-sm font-extrabold uppercase tracking-wide text-brand-gold">Payment Details</p>
-      <p className="whitespace-pre-line leading-relaxed text-gray-700">
+      <p className="whitespace-pre-line leading-relaxed text-black">
         {paymentDetails ?? "Payment details not yet set up. Add them in Settings > Quote Builder Details."}
       </p>
     </div>

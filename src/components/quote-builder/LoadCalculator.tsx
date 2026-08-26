@@ -18,7 +18,7 @@ const USABLE_DOD_FRACTION = 0.8;
 
 const fieldClasses =
   "w-full rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-900 focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30 print:hidden";
-const labelClasses = "text-xs font-semibold text-gray-500";
+const labelClasses = "text-xs font-semibold text-gray-500 print:hidden";
 
 /** Typical Nigerian household/office wattages -- a starting point only.
  * Every value lands in an editable NumberInput once added, since actual
@@ -62,7 +62,7 @@ function newAppliance(): LoadCalculatorAppliance {
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-t-4 border-gray-200 border-t-brand-gold bg-gray-50 px-3 py-2 print:rounded-none print:border print:border-brand-green/30 print:border-t-4 print:border-t-brand-gold print:bg-gray-50">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{label}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-black">{label}</p>
       <p className="text-sm font-bold text-brand-green">{value}</p>
     </div>
   );
@@ -198,7 +198,7 @@ export default function LoadCalculator({ value, onChange, systemType, onAutoFill
                     placeholder="e.g. Fridge"
                     className={fieldClasses}
                   />
-                  <PrintValue className="text-gray-700">{appliance.name || "--"}</PrintValue>
+                  <PrintValue className="text-black">{appliance.name || "--"}</PrintValue>
                 </td>
                 <td className="px-3 py-2 print:border print:border-brand-green/20 print:px-2 print:py-1">
                   <NumberInput
@@ -207,7 +207,7 @@ export default function LoadCalculator({ value, onChange, systemType, onAutoFill
                     onChange={(wattage) => updateAppliance(appliance.id, { wattage })}
                     className={fieldClasses}
                   />
-                  <PrintValue className="text-gray-700">{appliance.wattage}</PrintValue>
+                  <PrintValue className="text-black">{appliance.wattage}</PrintValue>
                 </td>
                 <td className="px-3 py-2 print:border print:border-brand-green/20 print:px-2 print:py-1">
                   <NumberInput
@@ -216,7 +216,7 @@ export default function LoadCalculator({ value, onChange, systemType, onAutoFill
                     onChange={(quantity) => updateAppliance(appliance.id, { quantity })}
                     className={fieldClasses}
                   />
-                  <PrintValue className="text-gray-700">{appliance.quantity}</PrintValue>
+                  <PrintValue className="text-black">{appliance.quantity}</PrintValue>
                 </td>
                 <td className="px-3 py-2 print:border print:border-brand-green/20 print:px-2 print:py-1">
                   <NumberInput
@@ -225,7 +225,7 @@ export default function LoadCalculator({ value, onChange, systemType, onAutoFill
                     onChange={(dailyHours) => updateAppliance(appliance.id, { dailyHours })}
                     className={fieldClasses}
                   />
-                  <PrintValue className="text-gray-700">{appliance.dailyHours}</PrintValue>
+                  <PrintValue className="text-black">{appliance.dailyHours}</PrintValue>
                 </td>
                 <td className="px-3 py-2 font-bold text-brand-green print:border print:border-brand-green/20 print:px-2 print:py-1">
                   {(appliance.wattage * appliance.quantity * appliance.dailyHours).toLocaleString()}
@@ -283,7 +283,7 @@ export default function LoadCalculator({ value, onChange, systemType, onAutoFill
         <StatCard label="Usable Battery Energy" value={usableBatteryEnergyWh ? `${Math.round(usableBatteryEnergyWh).toLocaleString()} Wh` : "--"} />
         <StatCard label="Estimated Backup Time" value={estimatedBackupHours ? `${estimatedBackupHours.toFixed(1)} hours` : "--"} />
       </div>
-      <p className="hidden text-[11px] text-gray-700 print:block">
+      <p className="hidden text-[11px] text-black print:block">
         <span className="font-bold text-red-600">NOTE:</span> This load analysis is an estimate for client guidance
         only. Actual runtime depends on battery state of charge, depth of discharge setting, inverter efficiency,
         starting surge of appliances, weather conditions and usage pattern. Heavy loads such as air conditioners,

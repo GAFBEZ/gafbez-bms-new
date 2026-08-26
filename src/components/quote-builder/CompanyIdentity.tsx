@@ -19,7 +19,7 @@ export default function CompanyIdentity({ branding }: CompanyIdentityProps) {
       )}
       <p className="text-2xl font-extrabold uppercase tracking-wide text-brand-gold">{branding.businessName}</p>
       {branding.tagline && <p className="text-base italic text-orange-800">{branding.tagline}</p>}
-      {branding.servicesLine && <p className="max-w-md text-sm font-semibold text-gray-800">{branding.servicesLine}</p>}
+      {branding.servicesLine && <p className="max-w-md text-sm font-semibold text-black">{branding.servicesLine}</p>}
     </div>
   );
 }

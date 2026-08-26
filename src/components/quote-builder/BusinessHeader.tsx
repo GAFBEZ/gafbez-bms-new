@@ -28,7 +28,7 @@ export default function BusinessHeader({ branding, systemType }: BusinessHeaderP
   return (
     <div className="flex flex-col items-center gap-2.5 border-b-4 border-brand-gold pb-2 text-center break-inside-avoid">
       <CompanyIdentity branding={branding} />
-      <p className="mt-1 text-base font-bold uppercase tracking-wide text-gray-900">{HEADING_BY_SYSTEM_TYPE[systemType]}</p>
+      <p className="mt-1 text-base font-bold uppercase tracking-wide text-black">{HEADING_BY_SYSTEM_TYPE[systemType]}</p>
     </div>
   );
 }
