@@ -17,6 +17,32 @@ function splitIntoPoints(text: string): string[] {
     .filter(Boolean);
 }
 
+const AC_DC_PATTERN = /\b(AC|DC)\b/g;
+
+/** Colors the electrical abbreviations AC (blue) and DC (red) wherever
+ * they appear in a point's text, so the two are visually distinct at a
+ * glance in a document full of breaker/cable/SPD specs. */
+function HighlightAcDc({ text }: { text: string }) {
+  const parts = text.split(AC_DC_PATTERN);
+  return (
+    <>
+      {parts.map((part, index) =>
+        part === "AC" ? (
+          <span key={index} className="font-semibold text-blue-700">
+            AC
+          </span>
+        ) : part === "DC" ? (
+          <span key={index} className="font-semibold text-red-600">
+            DC
+          </span>
+        ) : (
+          <span key={index}>{part}</span>
+        ),
+      )}
+    </>
+  );
+}
+
 /** Its own page, separate from the quotation itself -- reference material
  * (warranty coverage, claim process) that a client keeps rather than
  * something they act on immediately, unlike Payment Details. Rendered as
@@ -32,7 +58,7 @@ export default function TermsWarranty({ termsAndWarranty }: TermsWarrantyProps) 
       <ol className="list-decimal space-y-1.5 pl-5 leading-relaxed text-black print:space-y-1 print:text-sm print:leading-snug">
         {points.map((point, index) => (
           <li key={index} className="whitespace-pre-line pl-1">
-            {point}
+            <HighlightAcDc text={point} />
           </li>
         ))}
       </ol>

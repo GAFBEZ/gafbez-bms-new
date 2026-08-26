@@ -153,7 +153,7 @@ export default function LoadCalculator({ value, onChange, systemType, onAutoFill
         {systemType === "full_system" && (
           <div className="flex flex-col gap-1.5">
             <label htmlFor="solarArray" className={labelClasses}>
-              Solar Array (kW)
+              Solar Array (W)
             </label>
             <NumberInput
               id="solarArray"
@@ -163,7 +163,7 @@ export default function LoadCalculator({ value, onChange, systemType, onAutoFill
               className={fieldClasses}
             />
             <div className="hidden print:block">
-              <StatCard label="Solar Array" value={value.solarArrayKw ? `${value.solarArrayKw} kW` : "--"} />
+              <StatCard label="Solar Array" value={value.solarArrayKw ? `${value.solarArrayKw} W` : "--"} />
             </div>
           </div>
         )}
