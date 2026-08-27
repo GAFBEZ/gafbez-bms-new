@@ -92,12 +92,12 @@ export default function LineItemsTable({
         <table className="min-w-full divide-y divide-gray-100 text-sm print:w-full print:table-fixed print:border-collapse print:divide-y-0 print:text-xs">
           <thead>
             <tr className="bg-amber-50 text-left text-xs font-bold uppercase tracking-wide text-brand-green">
-              <th className="w-10 px-3 py-2.5 print:w-8 print:border print:border-brand-green/30 print:px-1.5 print:py-1">S/N</th>
-              <th className="px-3 py-2.5 print:border print:border-brand-green/30 print:px-1.5 print:py-1">Item</th>
-              <th className="px-3 py-2.5 print:border print:border-brand-green/30 print:px-1.5 print:py-1">Description</th>
-              <th className="w-20 px-3 py-2.5 print:w-14 print:border print:border-brand-green/30 print:px-1.5 print:py-1">Qty</th>
-              <th className="w-32 px-3 py-2.5 print:w-24 print:border print:border-brand-green/30 print:px-1.5 print:py-1">Rate</th>
-              <th className="w-32 px-3 py-2.5 print:w-28 print:border print:border-brand-green/30 print:px-1.5 print:py-1">Amount</th>
+              <th className="w-10 px-3 py-2.5 print:w-[5%] print:border print:border-brand-green/30 print:px-1.5 print:py-1">S/N</th>
+              <th className="px-3 py-2.5 print:w-[20%] print:border print:border-brand-green/30 print:px-1.5 print:py-1">Item</th>
+              <th className="px-3 py-2.5 print:w-[40%] print:border print:border-brand-green/30 print:px-1.5 print:py-1">Description</th>
+              <th className="w-20 px-3 py-2.5 print:w-[8%] print:border print:border-brand-green/30 print:px-1.5 print:py-1">Qty</th>
+              <th className="w-32 px-3 py-2.5 print:w-[12%] print:border print:border-brand-green/30 print:px-1.5 print:py-1">Rate</th>
+              <th className="w-32 px-3 py-2.5 print:w-[15%] print:border print:border-brand-green/30 print:px-1.5 print:py-1">Amount</th>
               <th className="w-16 px-3 py-2.5 print:hidden" />
             </tr>
           </thead>

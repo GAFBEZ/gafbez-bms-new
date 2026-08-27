@@ -80,3 +80,13 @@ body {
     color: #17241d;
   }
 }
+
+/* Pins the physical page size/margins so the Quote Builder's printed
+ * output doesn't depend on whatever a given browser or device defaults
+ * to -- mobile print/share-to-PDF flows in particular have been seen to
+ * pick a different page size than desktop Chrome, which changes how much
+ * content fits per page and can shift pagination around unpredictably. */
+@page {
+  size: A4;
+  margin: 12mm;
+}
