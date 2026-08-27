@@ -118,7 +118,11 @@ export default function LoadCalculator({ value, onChange, systemType, onAutoFill
         </button>
       </div>
 
-      <div className={`mt-3 grid grid-cols-2 gap-3 print:mt-2 print:gap-2 ${systemType === "full_system" ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
+      <div
+        className={`mt-3 grid grid-cols-2 gap-3 print:mt-2 print:gap-2 ${
+          systemType === "full_system" ? "sm:grid-cols-4 print:grid-cols-4" : "sm:grid-cols-3 print:grid-cols-3"
+        }`}
+      >
         <div className="flex flex-col gap-1.5">
           <label htmlFor="inverterSize" className={labelClasses}>
             Inverter Size (kVA)
@@ -281,7 +285,7 @@ export default function LoadCalculator({ value, onChange, systemType, onAutoFill
           Total Daily Energy: <strong className="text-gray-900">{(totalDailyEnergyWh / 1000).toFixed(2)} kWh</strong>
         </span>
       </div>
-      <div className="hidden grid-cols-2 gap-2 sm:grid-cols-4 print:grid">
+      <div className="hidden grid-cols-2 gap-2 sm:grid-cols-4 print:grid print:grid-cols-4">
         <StatCard label="Total Daily Energy" value={`${totalDailyEnergyWh.toLocaleString()} Wh`} />
         <StatCard label="Approx. Inverter Limit" value={approxInverterLimitW ? `${Math.round(approxInverterLimitW).toLocaleString()} W` : "--"} />
         <StatCard label="Usable Battery Energy" value={usableBatteryEnergyWh ? `${Math.round(usableBatteryEnergyWh).toLocaleString()} Wh` : "--"} />

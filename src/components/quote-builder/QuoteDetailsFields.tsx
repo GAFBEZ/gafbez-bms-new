@@ -33,7 +33,7 @@ export default function QuoteDetailsFields({
   onCustomerAddressChange,
 }: QuoteDetailsFieldsProps) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 print:gap-1 print:text-xs">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 print:grid-cols-2 print:gap-1 print:text-xs">
       <div className="flex flex-col gap-1.5 print:gap-0">
         <label htmlFor="quoteNumber" className={labelClasses}>
           Quote Number

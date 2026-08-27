@@ -336,7 +336,7 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
 
       <TermsWarranty termsAndWarranty={branding.termsAndWarranty} />
 
-      <div className="flex flex-col">
+      <div className={`flex flex-col ${hasLoadCalcContent ? "print:flex print:min-h-[260mm] print:flex-col" : ""}`}>
         <LoadCalculator
           value={loadCalc}
           onChange={setLoadCalc}
@@ -344,17 +344,17 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
           onAutoFill={handleAutoFill}
           branding={branding}
         />
-        {/* Plain margin, not a flex/min-height "pin to page bottom" trick --
-         * that approach relied on the browser measuring this box's height
-         * against a forced min-height and pushing the footer down with
-         * mt-auto, which is fragile across print engines: mobile Chrome/
-         * Safari measure the flex box's height differently from desktop
-         * Chrome (font-metric differences) and, when it doesn't fit the
-         * remaining page cleanly, dump the whole footer onto its own extra
-         * page instead of fragmenting it. Letting the footer flow normally
-         * right after the note is less pixel-perfect (it won't always sit
-         * flush at the page edge) but renders identically everywhere. */}
-        <div className={hasLoadCalcContent ? "mt-5 print:mt-6" : "mt-5"}>
+        {/* min-h-[260mm] (not the page's full ~273mm usable height) leaves
+         * roughly a centimeter of slack so mt-auto still has room to push
+         * the footer down even if a device renders this content a little
+         * taller than desktop does -- the actual cause of the footer
+         * getting bumped to its own page turned out to be the stat-card
+         * grids above silently losing their multi-column layout on mobile
+         * (see the print:grid-cols-N fix), not this technique itself. The
+         * page-break-before that starts this section on its own page
+         * already lives on LoadCalculator's own wrapper, so it isn't
+         * repeated here. */}
+        <div className={hasLoadCalcContent ? "mt-auto" : "mt-5"}>
           <QuoteFooterContact footerDetails={branding.footerDetails} />
         </div>
       </div>
