@@ -107,10 +107,10 @@ export default function LineItemsTable({
                 key={item.id}
                 className={`break-inside-avoid ${index % 2 === 1 ? "bg-gray-50 print:bg-gray-50" : ""}`}
               >
-                <td className="px-3 py-2 align-top font-semibold text-black print:border print:border-brand-green/20 print:px-1.5 print:py-1">
+                <td className="px-3 py-2 align-top font-semibold text-black print:border print:border-brand-green/20 print:px-1.5 print:py-0.5">
                   {index + 1}
                 </td>
-                <td className="px-3 py-2 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-1">
+                <td className="px-3 py-2 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-0.5">
                   <select
                     value={item.productId ? `${PRODUCT_PREFIX}${item.productId}` : CUSTOM_OPTION_VALUE}
                     onChange={(e) => handleSelect(item.id, e.target.value)}
@@ -143,7 +143,7 @@ export default function LineItemsTable({
                   />
                   <PrintValue className="font-semibold text-brand-green">{item.name || "--"}</PrintValue>
                 </td>
-                <td className="px-3 py-2 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-1">
+                <td className="px-3 py-2 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-0.5">
                   <textarea
                     value={item.description}
                     onChange={(e) => updateItem(item.id, { description: e.target.value })}
@@ -153,7 +153,7 @@ export default function LineItemsTable({
                   />
                   <PrintValue className="text-black">{item.description || "--"}</PrintValue>
                 </td>
-                <td className="px-3 py-2 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-1">
+                <td className="px-3 py-2 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-0.5">
                   <NumberInput
                     min={0}
                     value={item.quantity}
@@ -162,7 +162,7 @@ export default function LineItemsTable({
                   />
                   <PrintValue className="text-black">{item.quantity}</PrintValue>
                 </td>
-                <td className="px-3 py-2 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-1">
+                <td className="px-3 py-2 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-0.5">
                   <NumberInput
                     min={0}
                     value={item.rate}
@@ -171,7 +171,7 @@ export default function LineItemsTable({
                   />
                   <PrintValue className="text-black">{formatCurrency(item.rate)}</PrintValue>
                 </td>
-                <td className="whitespace-nowrap px-3 py-2 align-top font-bold text-brand-green print:border print:border-brand-green/20 print:px-1.5 print:py-1">
+                <td className="whitespace-nowrap px-3 py-2 align-top font-bold text-brand-green print:border print:border-brand-green/20 print:px-1.5 print:py-0.5">
                   {formatCurrency(computeLineAmount(item))}
                 </td>
                 <td className="px-3 py-2 align-top print:hidden">

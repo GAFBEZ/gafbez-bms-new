@@ -101,11 +101,18 @@ export default function LoadCalculator({ value, onChange, systemType, onAutoFill
         hasContent ? "print:break-before-page" : "print:hidden"
       }`}
     >
-      <div className="hidden print:flex print:flex-col print:items-center print:gap-2.5 print:border-b-4 print:border-brand-gold print:pb-2 print:text-center">
+      {/* print:break-inside-avoid guards against the "must start on a new
+       * page" rule above sometimes not being honored right at this exact
+       * boundary on some mobile print engines -- without it, the logo can
+       * start laying out at the bottom of the previous page and get
+       * physically cropped by the page edge instead of moving over
+       * cleanly. This keeps the logo+heading as one atomic unit, so worst
+       * case it jumps to the next page whole rather than splitting. */}
+      <div className="hidden print:flex print:flex-col print:items-center print:gap-2.5 print:break-inside-avoid print:border-b-4 print:border-brand-gold print:pb-2 print:text-center">
         <CompanyIdentity branding={branding} />
       </div>
 
-      <div className="flex flex-col items-center gap-2 border-b-2 border-brand-gold pb-3 text-center">
+      <div className="flex flex-col items-center gap-2 border-b-2 border-brand-gold pb-3 text-center print:break-inside-avoid">
         <h3 className="text-lg font-bold uppercase tracking-wide text-brand-green">
           Load Analysis / Estimated Backup Overview
         </h3>
