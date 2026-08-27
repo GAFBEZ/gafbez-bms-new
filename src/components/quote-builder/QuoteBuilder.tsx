@@ -336,7 +336,7 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
 
       <TermsWarranty termsAndWarranty={branding.termsAndWarranty} />
 
-      <div className={`flex flex-col ${hasLoadCalcContent ? "print:flex print:min-h-[260mm] print:flex-col" : ""}`}>
+      <div className="flex flex-col">
         <LoadCalculator
           value={loadCalc}
           onChange={setLoadCalc}
@@ -344,17 +344,18 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
           onAutoFill={handleAutoFill}
           branding={branding}
         />
-        {/* min-h-[260mm] (not the page's full ~273mm usable height) leaves
-         * roughly a centimeter of slack so mt-auto still has room to push
-         * the footer down even if a device renders this content a little
-         * taller than desktop does -- the actual cause of the footer
-         * getting bumped to its own page turned out to be the stat-card
-         * grids above silently losing their multi-column layout on mobile
-         * (see the print:grid-cols-N fix), not this technique itself. The
-         * page-break-before that starts this section on its own page
-         * already lives on LoadCalculator's own wrapper, so it isn't
-         * repeated here. */}
-        <div className={hasLoadCalcContent ? "mt-auto" : "mt-5"}>
+        {/* Deliberately plain flow, not a flex/min-height "pin to page
+         * bottom" trick. That approach was tried twice and failed both
+         * times for different reasons -- first because grids above it were
+         * silently collapsing to one column on mobile (fixed separately),
+         * and then again even after that fix: on at least one mobile print
+         * engine, a flex container that doesn't fit the remaining space on
+         * a page moves its whole leftover child to a fresh page rather
+         * than using the visible empty space left on the current one --
+         * that's an engine limitation, not something margins can fix.
+         * Plain flow guarantees the footer always lands on the same page
+         * as the note, just not glued to the exact bottom edge. */}
+        <div className={hasLoadCalcContent ? "mt-5 print:mt-6" : "mt-5"}>
           <QuoteFooterContact footerDetails={branding.footerDetails} />
         </div>
       </div>

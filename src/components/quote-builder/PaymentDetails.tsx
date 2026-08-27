@@ -32,9 +32,11 @@ export default function PaymentDetails({ paymentDetails }: PaymentDetailsProps) 
   );
 
   return (
-    <div className="mt-5 border-t border-gray-200 pt-4 text-sm print:mt-2 print:pt-2 print:text-xs">
-      <p className="mb-1.5 text-sm font-extrabold uppercase tracking-wide text-brand-gold print:text-xs">Payment Details</p>
-      <div className="leading-relaxed text-black print:leading-snug">
+    <div className="mt-5 border-t border-gray-200 pt-4 text-sm print:mt-1 print:pt-1 print:text-xs">
+      <p className="mb-1.5 text-sm font-extrabold uppercase tracking-wide text-brand-gold print:mb-0.5 print:text-xs">
+        Payment Details
+      </p>
+      <div className="leading-relaxed text-black print:leading-tight">
         {lines.map((line, index) => (
           <p key={index}>
             <PaymentDetailsLine line={line} />
