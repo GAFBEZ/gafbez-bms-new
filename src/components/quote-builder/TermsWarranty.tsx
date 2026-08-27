@@ -3,7 +3,7 @@ interface TermsWarrantyProps {
 }
 
 const FRAME_CLASSES =
-  "rounded-xl border border-gray-200 bg-white p-5 break-inside-avoid text-sm print:rounded-none print:border-2 print:border-brand-green/25 print:p-6";
+  "rounded-xl border border-gray-200 bg-white p-5 avoid-page-break text-sm print:rounded-none print:border-2 print:border-brand-green/25 print:p-6";
 
 const FALLBACK_TEXT = "Terms & warranty not yet set up. Add them in Settings > Quote Builder Details.";
 
@@ -53,7 +53,7 @@ export default function TermsWarranty({ termsAndWarranty }: TermsWarrantyProps) 
   const points = splitIntoPoints(termsAndWarranty ?? FALLBACK_TEXT);
 
   return (
-    <div className={`${FRAME_CLASSES} print:break-before-page`}>
+    <div className={`${FRAME_CLASSES} force-page-break`}>
       <p className="mb-2 text-sm font-extrabold uppercase tracking-wide text-brand-gold print:text-base">Terms & Warranty</p>
       <ol className="list-decimal space-y-1.5 pl-5 leading-relaxed text-black print:space-y-1 print:text-sm print:leading-snug">
         {points.map((point, index) => (

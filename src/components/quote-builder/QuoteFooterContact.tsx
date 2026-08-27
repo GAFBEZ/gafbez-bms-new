@@ -32,7 +32,7 @@ export default function QuoteFooterContact({ footerDetails }: QuoteFooterContact
   if (!footerDetails) return null;
 
   return (
-    <div className="border-t-2 border-brand-gold pt-3 text-center text-xs text-black break-inside-avoid">
+    <div className="border-t-2 border-brand-gold pt-3 text-center text-xs text-black avoid-page-break">
       {footerDetails.split("\n").map((line, index) => (
         <p key={index}>
           <FooterLine line={line} />

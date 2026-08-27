@@ -26,7 +26,7 @@ const HEADING_BY_SYSTEM_TYPE: Record<QuoteSystemType, string> = {
  * builder, unlike the installer version where every user has their own. */
 export default function BusinessHeader({ branding, systemType }: BusinessHeaderProps) {
   return (
-    <div className="flex flex-col items-center gap-2.5 border-b-4 border-brand-gold pb-2 text-center break-inside-avoid print:gap-1.5 print:pb-1.5">
+    <div className="flex flex-col items-center gap-2.5 border-b-4 border-brand-gold pb-2 text-center avoid-page-break print:gap-1.5 print:pb-1.5">
       <CompanyIdentity branding={branding} />
       <p className="mt-1 text-base font-bold uppercase tracking-wide text-black print:mt-0.5 print:text-sm">
         {HEADING_BY_SYSTEM_TYPE[systemType]}

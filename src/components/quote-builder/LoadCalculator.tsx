@@ -98,21 +98,21 @@ export default function LoadCalculator({ value, onChange, systemType, onAutoFill
   return (
     <div
       className={`flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-4 print:rounded-none print:border-none print:p-0 ${
-        hasContent ? "print:break-before-page" : "print:hidden"
+        hasContent ? "force-page-break" : "print:hidden"
       }`}
     >
-      {/* print:break-inside-avoid guards against the "must start on a new
-       * page" rule above sometimes not being honored right at this exact
+      {/* avoid-page-break guards against the "must start on a new page"
+       * rule above sometimes not being honored right at this exact
        * boundary on some mobile print engines -- without it, the logo can
        * start laying out at the bottom of the previous page and get
        * physically cropped by the page edge instead of moving over
        * cleanly. This keeps the logo+heading as one atomic unit, so worst
        * case it jumps to the next page whole rather than splitting. */}
-      <div className="hidden print:flex print:flex-col print:items-center print:gap-2.5 print:break-inside-avoid print:border-b-4 print:border-brand-gold print:pb-2 print:text-center">
+      <div className="hidden print:flex print:flex-col print:items-center print:gap-2.5 avoid-page-break print:border-b-4 print:border-brand-gold print:pb-2 print:text-center">
         <CompanyIdentity branding={branding} />
       </div>
 
-      <div className="flex flex-col items-center gap-2 border-b-2 border-brand-gold pb-3 text-center print:break-inside-avoid">
+      <div className="flex flex-col items-center gap-2 border-b-2 border-brand-gold pb-3 text-center avoid-page-break">
         <h3 className="text-lg font-bold uppercase tracking-wide text-brand-green">
           Load Analysis / Estimated Backup Overview
         </h3>
@@ -200,7 +200,7 @@ export default function LoadCalculator({ value, onChange, systemType, onAutoFill
             {appliances.map((appliance, index) => (
               <tr
                 key={appliance.id}
-                className={`break-inside-avoid ${index % 2 === 1 ? "bg-gray-50 print:bg-gray-50" : ""}`}
+                className={`avoid-page-break ${index % 2 === 1 ? "bg-gray-50 print:bg-gray-50" : ""}`}
               >
                 <td className="px-3 py-2 font-semibold text-black print:border print:border-brand-green/20 print:px-2 print:py-1">
                   {index + 1}

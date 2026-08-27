@@ -179,7 +179,12 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    // print:block: flex items don't fragment across printed page breaks
+    // reliably in any browser engine (the CSS Fragmentation spec treats
+    // flex containers as effectively unsplittable), so the forced page
+    // breaks below (see force-page-break in globals.css) only work
+    // consistently once these sections are plain block boxes for print.
+    <div className="flex flex-col gap-5 print:block">
       <div className="print:hidden">
         <SystemTypeToggle value={systemType} onChange={setSystemType} />
       </div>
@@ -336,7 +341,11 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
 
       <TermsWarranty termsAndWarranty={branding.termsAndWarranty} />
 
-      <div className="flex flex-col">
+      {/* Plain block, not flex -- this no longer needs mt-auto (see the
+       * page-break rework in globals.css), and a flex container here would
+       * only reintroduce the cross-page-fragmentation unreliability that
+       * caused the footer to land on its own page in earlier attempts. */}
+      <div>
         <LoadCalculator
           value={loadCalc}
           onChange={setLoadCalc}
@@ -344,17 +353,6 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
           onAutoFill={handleAutoFill}
           branding={branding}
         />
-        {/* Deliberately plain flow, not a flex/min-height "pin to page
-         * bottom" trick. That approach was tried twice and failed both
-         * times for different reasons -- first because grids above it were
-         * silently collapsing to one column on mobile (fixed separately),
-         * and then again even after that fix: on at least one mobile print
-         * engine, a flex container that doesn't fit the remaining space on
-         * a page moves its whole leftover child to a fresh page rather
-         * than using the visible empty space left on the current one --
-         * that's an engine limitation, not something margins can fix.
-         * Plain flow guarantees the footer always lands on the same page
-         * as the note, just not glued to the exact bottom edge. */}
         <div className={hasLoadCalcContent ? "mt-5 print:mt-6" : "mt-5"}>
           <QuoteFooterContact footerDetails={branding.footerDetails} />
         </div>

@@ -90,3 +90,25 @@ body {
   size: A4;
   margin: 12mm;
 }
+
+/* Quote Builder page-break helpers, used instead of Tailwind's
+ * break-before-page/break-inside-avoid utilities. Tailwind only emits the
+ * modern `break-before`/`break-inside` properties; on iPhone, both Safari
+ * and Chrome render print output through the same underlying WebKit
+ * engine (Apple requires it), which has had long-standing bugs honoring
+ * those modern properties in print specifically, while the older
+ * `page-break-before`/`page-break-inside` properties (same behavior, CSS2.1
+ * era) have been supported there for far longer. Setting both means
+ * whichever one a given engine actually respects, the break still happens.
+ * These have no effect outside paged/print contexts, so applying them
+ * unconditionally (not just under `.dark`/`print:`-style scoping) is safe
+ * for on-screen rendering too. */
+.force-page-break {
+  break-before: page;
+  page-break-before: always;
+}
+
+.avoid-page-break {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}

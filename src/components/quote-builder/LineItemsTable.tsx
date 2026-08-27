@@ -105,7 +105,7 @@ export default function LineItemsTable({
             {items.map((item, index) => (
               <tr
                 key={item.id}
-                className={`break-inside-avoid ${index % 2 === 1 ? "bg-gray-50 print:bg-gray-50" : ""}`}
+                className={`avoid-page-break ${index % 2 === 1 ? "bg-gray-50 print:bg-gray-50" : ""}`}
               >
                 <td className="px-3 py-2 align-top font-semibold text-black print:border print:border-brand-green/20 print:px-1.5 print:py-0.5">
                   {index + 1}

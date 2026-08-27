@@ -11,7 +11,7 @@ interface QuoteTotalsProps {
 
 export default function QuoteTotals({ subtotal, vatPercent, onVatPercentChange, grandTotal }: QuoteTotalsProps) {
   return (
-    <div className="ml-auto flex w-full max-w-xs flex-col gap-2 text-sm break-inside-avoid print:gap-1">
+    <div className="ml-auto flex w-full max-w-xs flex-col gap-2 text-sm avoid-page-break print:gap-1">
       <div className="flex items-center justify-between">
         <span className="text-black">Subtotal</span>
         <span className="font-semibold text-black">{formatCurrency(subtotal)}</span>
