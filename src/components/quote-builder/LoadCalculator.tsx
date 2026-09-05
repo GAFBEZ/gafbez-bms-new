@@ -184,11 +184,13 @@ export default function LoadCalculator({ value, onChange, systemType, onAutoFill
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-gray-200 print:overflow-visible print:rounded-none print:border-brand-green/40">
-        <table className="min-w-full divide-y divide-gray-100 text-sm print:w-full print:table-fixed print:border-collapse print:divide-y-0">
+        <table className="w-full min-w-[700px] divide-y divide-gray-100 text-sm print:w-full print:min-w-0 print:table-fixed print:border-collapse print:divide-y-0">
           <thead>
             <tr className="bg-amber-50 text-left text-xs font-bold uppercase tracking-wide text-brand-green">
               <th className="w-10 px-3 py-2 print:w-[6%] print:border print:border-brand-green/30 print:px-2 print:py-1">S/N</th>
-              <th className="px-3 py-2 print:w-[34%] print:border print:border-brand-green/30 print:px-2 print:py-1">Appliance</th>
+              <th className="min-w-[160px] px-3 py-2 print:min-w-0 print:w-[34%] print:border print:border-brand-green/30 print:px-2 print:py-1">
+                Appliance
+              </th>
               <th className="w-24 px-3 py-2 print:w-[15%] print:border print:border-brand-green/30 print:px-2 print:py-1">Watts</th>
               <th className="w-20 px-3 py-2 print:w-[12%] print:border print:border-brand-green/30 print:px-2 print:py-1">Qty</th>
               <th className="w-28 px-3 py-2 print:w-[16%] print:border print:border-brand-green/30 print:px-2 print:py-1">Hrs/Day</th>
