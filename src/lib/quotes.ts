@@ -62,11 +62,19 @@ export function mapQuoteTemplateRow(row: QuoteTemplateRow): QuoteTemplate {
 }
 
 /** Every quote this staff member has saved, most recent first -- RLS
- * (`owner_id = auth.uid() or is_admin()`) already scopes this to their
- * own rows unless they're an admin. */
+ * (`owner_id = auth.uid() or (is_admin() and owner_role = 'staff')`)
+ * already scopes this to their own rows, or every staff row if they're
+ * an admin. The explicit owner_role filter here is defense-in-depth, not
+ * load-bearing: it keeps this query's intent (staff quotes only, never
+ * installer quotes from the other app) legible without having to go read
+ * the RLS policy to know that. */
 export async function getQuotes(): Promise<Quote[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("quotes").select("*").order("created_at", { ascending: false });
+  const { data, error } = await supabase
+    .from("quotes")
+    .select("*")
+    .eq("owner_role", "staff")
+    .order("created_at", { ascending: false });
 
   if (error) {
     console.warn("Failed to load quotes:", error.message);
@@ -78,7 +86,7 @@ export async function getQuotes(): Promise<Quote[]> {
 
 export async function getQuote(id: string): Promise<Quote | null> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("quotes").select("*").eq("id", id).maybeSingle();
+  const { data, error } = await supabase.from("quotes").select("*").eq("id", id).eq("owner_role", "staff").maybeSingle();
 
   if (error || !data) return null;
 
