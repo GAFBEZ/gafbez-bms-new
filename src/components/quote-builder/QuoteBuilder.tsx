@@ -411,7 +411,7 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
           className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-5 py-2.5 text-sm font-semibold text-brand-green transition-colors hover:bg-green-50 dark:hover:bg-gray-800 disabled:opacity-60"
         >
           <Download className="h-4 w-4" />
-          {isPreparingPdf ? "Preparing PDF…" : "Download PDF"}
+          {isPreparingPdf ? "Preparing PDF…" : "Download PDF (Mobile)"}
         </button>
         {saveMessage && <span className="text-sm text-gray-500 dark:text-gray-400">{saveMessage}</span>}
       </div>
