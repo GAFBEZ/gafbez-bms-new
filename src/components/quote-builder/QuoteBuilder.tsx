@@ -399,7 +399,7 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
         <button
           type="button"
           onClick={() => window.print()}
-          className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-5 py-2.5 text-sm font-semibold text-brand-green transition-colors hover:bg-green-50 dark:hover:bg-gray-800"
+          className="inline-flex items-center gap-2 rounded-lg bg-brand-green px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-green-dark"
         >
           <Printer className="h-4 w-4" />
           Print / Save PDF
@@ -408,7 +408,7 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
           type="button"
           onClick={handleDownloadPdf}
           disabled={isPending}
-          className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-5 py-2.5 text-sm font-semibold text-brand-green transition-colors hover:bg-green-50 dark:hover:bg-gray-800 disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-lg bg-brand-green px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-green-dark disabled:opacity-60"
         >
           <Download className="h-4 w-4" />
           {isPreparingPdf ? "Preparing PDF…" : "Download PDF (Mobile)"}
