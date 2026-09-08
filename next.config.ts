@@ -32,6 +32,15 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "4mb",
     },
   },
+  // @sparticuz/chromium's binary is loaded from disk at runtime rather
+  // than a plain require(), so Next's own dependency trace misses it --
+  // without this, the PDF route's serverless function bundle on Vercel
+  // is missing the Chromium binary entirely (works fine in local dev,
+  // where the full `puppeteer` package's own Chromium is used instead).
+  serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core"],
+  outputFileTracingIncludes: {
+    "/api/quote-builder/pdf": ["node_modules/@sparticuz/chromium/bin/**/*"],
+  },
 };
 
 export default nextConfig;

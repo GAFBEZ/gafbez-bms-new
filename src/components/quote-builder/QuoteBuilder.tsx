@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { Printer, Save, Trash2 } from "lucide-react";
+import { Download, Printer, Save, Trash2 } from "lucide-react";
 import type { Quote, QuoteLineItem, QuoteLoadCalc, QuoteSystemType, QuoteTemplate, SavedQuoteItem } from "@/types";
 import { autoFillLoadCalcFromLineItems, computeGrandTotal, computeSubtotal } from "@/lib/quoteCalculations";
 import { formatCurrency } from "@/lib/format";
@@ -52,6 +52,7 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
   const [myTemplates, setMyTemplates] = useState<QuoteTemplate[]>(templates);
   const [showSaveTemplateForm, setShowSaveTemplateForm] = useState(false);
   const [templateName, setTemplateName] = useState("");
+  const [isPreparingPdf, setIsPreparingPdf] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const templatesForSystemType = useMemo(
@@ -151,9 +152,8 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
     });
   }
 
-  function handleSave() {
-    setSaveMessage(null);
-    const input: SaveQuoteInput = {
+  function buildSaveInput(): SaveQuoteInput {
+    return {
       id: savedId ?? undefined,
       systemType,
       quoteNumber: quoteNumber || null,
@@ -166,15 +166,43 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
       grandTotal,
       loadCalc,
     };
+  }
 
+  function handleSave() {
+    setSaveMessage(null);
     startTransition(async () => {
-      const result = await saveQuote(input);
+      const result = await saveQuote(buildSaveInput());
       if ("error" in result) {
         setSaveMessage(result.error);
       } else {
         setSavedId(result.id);
         setSaveMessage("Quote saved.");
       }
+    });
+  }
+
+  /** The PDF is rendered server-side from a saved quote row (see
+   * /api/quote-builder/pdf), not from whatever's currently unsaved in
+   * this form -- so this saves first (identical to "Save Quote"), then
+   * navigates to the PDF route to trigger the download. One click, but
+   * it always saves as a side effect. */
+  function handleDownloadPdf() {
+    setSaveMessage(null);
+    setIsPreparingPdf(true);
+    startTransition(async () => {
+      const result = await saveQuote(buildSaveInput());
+      if ("error" in result) {
+        setSaveMessage(result.error);
+        setIsPreparingPdf(false);
+        return;
+      }
+      setSavedId(result.id);
+      // Not an internal page navigation -- this route returns a
+      // Content-Disposition: attachment PDF, so router.push() (meant for
+      // client-side route transitions) doesn't apply here.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.href = `/api/quote-builder/pdf?id=${result.id}`;
+      setIsPreparingPdf(false);
     });
   }
 
@@ -375,6 +403,15 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
         >
           <Printer className="h-4 w-4" />
           Print / Save PDF
+        </button>
+        <button
+          type="button"
+          onClick={handleDownloadPdf}
+          disabled={isPending}
+          className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-5 py-2.5 text-sm font-semibold text-brand-green transition-colors hover:bg-green-50 dark:hover:bg-gray-800 disabled:opacity-60"
+        >
+          <Download className="h-4 w-4" />
+          {isPreparingPdf ? "Preparing PDF…" : "Download PDF"}
         </button>
         {saveMessage && <span className="text-sm text-gray-500 dark:text-gray-400">{saveMessage}</span>}
       </div>

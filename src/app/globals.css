@@ -47,7 +47,7 @@
   --color-brand-gold-soft: var(--color-brand-gold-soft);
   --color-page: var(--color-page);
   --color-card: var(--color-card);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-geist-sans), var(--font-noto-sans-fallback);
   --font-mono: var(--font-geist-mono);
 }
 

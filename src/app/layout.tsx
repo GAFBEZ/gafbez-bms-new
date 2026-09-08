@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Noto_Sans } from "next/font/google";
 import { APP_NAME } from "@/lib/constants";
 import { getAppSettings } from "@/lib/settings";
 import "./globals.css";
@@ -12,6 +12,24 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+/** Geist's "latin" subset doesn't include the Naira sign (U+20A6) --
+ * invisible on a real browser (the OS's own installed fonts silently
+ * cover the missing glyph), but the Quote Builder's server-side PDF
+ * route (see src/app/api/quote-builder/pdf) renders in a minimal,
+ * sandboxed headless Chromium with no such system font library, so
+ * every "N" price would show as a tofu box there. Self-hosted (via
+ * next/font, like the two fonts above) so Chromium fetches it from our
+ * own origin during PDF generation regardless of what fonts that
+ * sandbox happens to have installed. Chained in as a fallback in
+ * globals.css's --font-sans, not used directly anywhere. Confirmed
+ * needed on the sibling public-website repo's identical PDF route.
+ */
+const notoSansFallback = Noto_Sans({
+  variable: "--font-noto-sans-fallback",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -37,7 +55,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${notoSansFallback.variable} h-full antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
