@@ -256,7 +256,7 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
           <button
             type="button"
             onClick={() => setShowSaveTemplateForm(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm font-semibold text-brand-green transition-colors hover:bg-green-50 dark:hover:bg-gray-800"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm font-semibold text-brand-green dark:text-emerald-400 transition-colors hover:bg-green-50 dark:hover:bg-gray-800"
           >
             <Save className="h-4 w-4" />
             Save current setup as template
@@ -293,7 +293,7 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
 
         {myTemplates.length > 0 && (
           <details className="w-full">
-            <summary className="cursor-pointer text-xs font-semibold text-brand-green">
+            <summary className="cursor-pointer text-xs font-semibold text-brand-green dark:text-emerald-400">
               Manage Templates ({myTemplates.length})
             </summary>
             <ul className="mt-2 flex flex-col gap-1.5">
@@ -351,7 +351,7 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
 
         {mySavedItems.length > 0 && (
           <details className="mt-3 print:hidden">
-            <summary className="cursor-pointer text-xs font-semibold text-brand-green">
+            <summary className="cursor-pointer text-xs font-semibold text-brand-green dark:text-emerald-400">
               Manage Saved Items ({mySavedItems.length})
             </summary>
             <ul className="mt-2 flex flex-col gap-1.5">
