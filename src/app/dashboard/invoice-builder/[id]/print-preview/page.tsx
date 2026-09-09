@@ -1,11 +1,9 @@
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
-import { getProducts } from "@/lib/products";
 import { getAppSettings } from "@/lib/settings";
-import { getSavedItems } from "@/lib/quotes";
 import { getInvoice } from "@/lib/invoices";
+import { getInvoiceBuilderCatalogue, buildInvoiceBranding } from "@/lib/invoiceBuilderData";
 import InvoiceBuilder from "@/components/invoice-builder/InvoiceBuilder";
-import type { LineItemCatalogueOption } from "@/components/quote-builder/LineItemsTable";
 
 export const metadata = {
   robots: { index: false, follow: false },
@@ -24,37 +22,16 @@ export default async function InvoiceBuilderPrintPreviewPage({ params }: { param
     redirect("/login");
   }
 
-  const [invoice, products, appSettings, savedItems] = await Promise.all([
+  const [invoice, appSettings, { catalogueOptions, savedItems }] = await Promise.all([
     getInvoice(id),
-    getProducts(),
     getAppSettings(),
-    getSavedItems(),
+    getInvoiceBuilderCatalogue(),
   ]);
   if (!invoice) notFound();
 
-  const catalogueOptions: LineItemCatalogueOption[] = products
-    .filter((product) => product.isActive)
-    .map((product) => ({
-      id: product.id,
-      name: product.name,
-      bonusCategory: product.bonusCategory,
-      unit: product.unit,
-      shortDescription: product.website.shortDescription,
-      sellPrice: product.sellingPrice,
-    }));
-
   return (
     <InvoiceBuilder
-      branding={{
-        logoUrl: appSettings.logoUrl,
-        businessName: appSettings.businessName,
-        tagline: appSettings.quoteTagline,
-        servicesLine: appSettings.quoteServicesLine,
-        phone: appSettings.businessPhone,
-        email: appSettings.businessEmail,
-        invoicePaymentTerms: appSettings.invoicePaymentTerms,
-        footerDetails: appSettings.quoteFooterDetails,
-      }}
+      branding={buildInvoiceBranding(appSettings)}
       catalogueOptions={catalogueOptions}
       savedItems={savedItems}
       initialInvoice={invoice}

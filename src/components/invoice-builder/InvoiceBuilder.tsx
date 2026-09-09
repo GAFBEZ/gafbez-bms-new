@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Download, Printer, Save } from "lucide-react";
 import type { Invoice, InvoiceLineItem, InvoicePayment, QuoteSystemType, SavedQuoteItem } from "@/types";
 import type { QuoteBranding } from "@/components/quote-builder/BusinessHeader";
@@ -40,6 +41,12 @@ const CARD_CLASSES =
   "rounded-xl border border-gray-200 bg-white p-5 print:rounded-none print:border-2 print:border-brand-green/25 print:px-2 print:pb-2 print:pt-3 print:[-webkit-box-decoration-break:clone] print:[box-decoration-break:clone]";
 
 export default function InvoiceBuilder({ branding, catalogueOptions, savedItems, initialInvoice }: InvoiceBuilderProps) {
+  const router = useRouter();
+  // Whether this render started from a blank form (the "new" page) rather
+  // than an already-saved invoice -- captured once so it doesn't change
+  // after the first save swaps in a real id, which would otherwise stop
+  // the very redirect below from firing on subsequent re-saves too.
+  const [isNewInvoice] = useState(!initialInvoice);
   const [systemType, setSystemType] = useState<QuoteSystemType>(initialInvoice?.systemType ?? "full_system");
   const [invoiceNumber, setInvoiceNumber] = useState(initialInvoice?.invoiceNumber ?? "");
   const [invoiceDate, setInvoiceDate] = useState(initialInvoice?.invoiceDate ?? new Date().toISOString().slice(0, 10));
@@ -91,6 +98,13 @@ export default function InvoiceBuilder({ branding, catalogueOptions, savedItems,
       } else {
         setSavedId(result.id);
         setSaveMessage("Invoice saved.");
+        // First save from a blank form: move to this invoice's own
+        // bookmarkable edit URL so it can be found again later from the
+        // Invoice / Receipt list, instead of staying on the "new" page
+        // with the saved row only reachable via in-memory state.
+        if (isNewInvoice) {
+          router.replace(`/dashboard/invoice-builder/${result.id}`);
+        }
       }
     });
   }
@@ -110,6 +124,9 @@ export default function InvoiceBuilder({ branding, catalogueOptions, savedItems,
         return;
       }
       setSavedId(result.id);
+      if (isNewInvoice) {
+        router.replace(`/dashboard/invoice-builder/${result.id}`);
+      }
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = `/api/invoice-builder/pdf?id=${result.id}`;
       setIsPreparingPdf(false);
