@@ -96,6 +96,7 @@ export async function updateQuoteBranding(
       quote_payment_details: optionalText(formData, "quotePaymentDetails"),
       quote_terms_and_warranty: optionalText(formData, "quoteTermsAndWarranty"),
       quote_footer_details: optionalText(formData, "quoteFooterDetails"),
+      invoice_payment_terms: optionalText(formData, "invoicePaymentTerms"),
     })
     .eq("id", true);
 
@@ -105,6 +106,7 @@ export async function updateQuoteBranding(
 
   revalidatePath("/dashboard/settings");
   revalidatePath("/dashboard/quote-builder");
+  revalidatePath("/dashboard/invoice-builder");
   return { error: null, success: true };
 }
 

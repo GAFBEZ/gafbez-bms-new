@@ -83,6 +83,7 @@ export default async function SettingsPage() {
               quotePaymentDetails={appSettings.quotePaymentDetails}
               quoteTermsAndWarranty={appSettings.quoteTermsAndWarranty}
               quoteFooterDetails={appSettings.quoteFooterDetails}
+              invoicePaymentTerms={appSettings.invoicePaymentTerms}
             />
           </div>
         </section>

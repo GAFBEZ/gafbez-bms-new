@@ -15,6 +15,7 @@ import {
   HardHat,
   MessageCircle,
   Calculator,
+  ReceiptText,
 } from "lucide-react";
 import type { NavItem } from "@/types";
 
@@ -33,6 +34,7 @@ export const navItems: NavItem[] = [
   },
   { label: "Daily Sales", href: "/dashboard/daily-sales", icon: Receipt },
   { label: "Quote Builder", href: "/dashboard/quote-builder", icon: Calculator },
+  { label: "Invoice / Receipt", href: "/dashboard/invoice-builder", icon: ReceiptText },
   { label: "WhatsApp Orders", href: "/dashboard/whatsapp-orders", icon: MessageCircle },
   { label: "Customers", href: "/dashboard/customers", icon: Users },
   { label: "Expenses", href: "/dashboard/expenses", icon: Wallet },

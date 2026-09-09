@@ -717,3 +717,52 @@ export interface QuoteTemplate {
   lineItems: QuoteLineItem[];
   loadCalc: QuoteLoadCalc | null;
 }
+
+// ---------------------------------------------------------------------
+// Invoice / Receipt Builder
+// ---------------------------------------------------------------------
+
+/** One fixed category row (Solar panels, Inverter, Battery, etc.) --
+ * `label` is stored per row rather than re-derived from systemType, so
+ * an already-saved invoice keeps its original wording even if the
+ * category list changes later. `productId`/`description` mirror
+ * QuoteLineItem's own item-picker fields, so a row can be filled in either
+ * by picking a catalogue/saved item (which sets all three) or by typing a
+ * custom name and description directly. */
+export interface InvoiceLineItem {
+  id: string;
+  label: string;
+  description: string;
+  productId: string | null;
+  quantity: number;
+  unitPrice: number;
+}
+
+/** One entry in the running payment history -- the document is reopened
+ * over its life to append these (deposit today, balance weeks later). */
+export interface InvoicePayment {
+  id: string;
+  date: string;
+  amount: number;
+  method: string;
+  reference: string;
+}
+
+export interface Invoice {
+  id: string;
+  ownerId: string;
+  ownerRole: "staff" | "installer";
+  systemType: QuoteSystemType;
+  invoiceNumber: string | null;
+  invoiceDate: string;
+  clientName: string | null;
+  projectLocation: string | null;
+  lineItems: InvoiceLineItem[];
+  subtotal: number;
+  vatPercent: number;
+  total: number;
+  depositPercent: number;
+  payments: InvoicePayment[];
+  createdAt: string;
+  updatedAt: string;
+}

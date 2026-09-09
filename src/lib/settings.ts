@@ -13,6 +13,7 @@ export interface AppSettings {
   quotePaymentDetails: string | null;
   quoteTermsAndWarranty: string | null;
   quoteFooterDetails: string | null;
+  invoicePaymentTerms: string | null;
 }
 
 const FALLBACK_SETTINGS: AppSettings = {
@@ -27,6 +28,7 @@ const FALLBACK_SETTINGS: AppSettings = {
   quotePaymentDetails: null,
   quoteTermsAndWarranty: null,
   quoteFooterDetails: null,
+  invoicePaymentTerms: null,
 };
 
 export async function getAppSettings(): Promise<AppSettings> {
@@ -34,7 +36,7 @@ export async function getAppSettings(): Promise<AppSettings> {
   const { data, error } = await supabase
     .from("app_settings")
     .select(
-      "default_reorder_level, business_name, business_address, business_phone, business_email, logo_path, quote_tagline, quote_services_line, quote_payment_details, quote_terms_and_warranty, quote_footer_details",
+      "default_reorder_level, business_name, business_address, business_phone, business_email, logo_path, quote_tagline, quote_services_line, quote_payment_details, quote_terms_and_warranty, quote_footer_details, invoice_payment_terms",
     )
     .eq("id", true)
     .single();
@@ -60,5 +62,6 @@ export async function getAppSettings(): Promise<AppSettings> {
     quotePaymentDetails: data.quote_payment_details,
     quoteTermsAndWarranty: data.quote_terms_and_warranty,
     quoteFooterDetails: data.quote_footer_details,
+    invoicePaymentTerms: data.invoice_payment_terms,
   };
 }

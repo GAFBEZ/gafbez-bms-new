@@ -13,6 +13,7 @@ interface QuoteBrandingFormProps {
   quotePaymentDetails: string | null;
   quoteTermsAndWarranty: string | null;
   quoteFooterDetails: string | null;
+  invoicePaymentTerms: string | null;
 }
 
 const initialState: SettingsFormState = { error: null };
@@ -27,6 +28,7 @@ export function QuoteBrandingForm({
   quotePaymentDetails,
   quoteTermsAndWarranty,
   quoteFooterDetails,
+  invoicePaymentTerms,
 }: QuoteBrandingFormProps) {
   const [state, formAction, isPending] = useActionState(updateQuoteBranding, initialState);
 
@@ -35,6 +37,7 @@ export function QuoteBrandingForm({
   const paymentId = useId();
   const termsId = useId();
   const footerId = useId();
+  const invoiceTermsId = useId();
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -108,8 +111,23 @@ export function QuoteBrandingForm({
         />
       </div>
 
+      <div>
+        <label htmlFor={invoiceTermsId} className={labelClasses}>
+          Invoice payment terms
+        </label>
+        <textarea
+          id={invoiceTermsId}
+          name="invoicePaymentTerms"
+          rows={3}
+          defaultValue={invoicePaymentTerms ?? ""}
+          placeholder="Deposit/balance payment policy shown on printed invoices…"
+          className={`${inputClasses} resize-none`}
+        />
+      </div>
+
       <p className="text-xs text-gray-400 dark:text-gray-500">
-        Shown on every quote built with the staff Quote Builder, alongside the business name/address/phone/email/logo above.
+        Shown on every quote/invoice built with the staff Quote Builder and Invoice Builder, alongside the business
+        name/address/phone/email/logo above.
       </p>
 
       <div className="flex items-center gap-3">

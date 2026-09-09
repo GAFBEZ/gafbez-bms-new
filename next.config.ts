@@ -40,6 +40,7 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core"],
   outputFileTracingIncludes: {
     "/api/quote-builder/pdf": ["node_modules/@sparticuz/chromium/bin/**/*"],
+    "/api/invoice-builder/pdf": ["node_modules/@sparticuz/chromium/bin/**/*"],
   },
 };
 

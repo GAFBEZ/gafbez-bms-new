@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Receipt } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getProducts } from "@/lib/products";
 import { getAppSettings } from "@/lib/settings";
@@ -33,6 +35,15 @@ export default async function QuoteBuilderPage() {
         <PageHeader
           title="Quote Builder"
           description="Build a GAFBEZ-branded quotation for a customer using current selling prices."
+          actions={
+            <Link
+              href="/dashboard/invoice-builder"
+              className="flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
+            >
+              <Receipt className="h-4 w-4" aria-hidden="true" />
+              Create Invoice / Receipt
+            </Link>
+          }
         />
       </div>
 
