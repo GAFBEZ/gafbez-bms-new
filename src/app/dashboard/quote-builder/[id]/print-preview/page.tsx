@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getAppSettings } from "@/lib/settings";
 import { getQuote } from "@/lib/quotes";
+import { buildQuoteBranding } from "@/lib/quoteBuilderData";
 import QuoteBuilder from "@/components/quote-builder/QuoteBuilder";
 
 export const metadata = {
@@ -34,17 +35,7 @@ export default async function QuoteBuilderPrintPreviewPage({ params }: { params:
       catalogueOptions={[]}
       savedItems={[]}
       templates={[]}
-      branding={{
-        logoUrl: appSettings.logoUrl,
-        businessName: appSettings.businessName,
-        tagline: appSettings.quoteTagline,
-        servicesLine: appSettings.quoteServicesLine,
-        phone: appSettings.businessPhone,
-        email: appSettings.businessEmail,
-        paymentDetails: appSettings.quotePaymentDetails,
-        termsAndWarranty: appSettings.quoteTermsAndWarranty,
-        footerDetails: appSettings.quoteFooterDetails,
-      }}
+      branding={buildQuoteBranding(appSettings)}
       initialQuote={quote}
     />
   );

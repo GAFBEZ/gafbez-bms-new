@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Download, Printer, Save, Trash2 } from "lucide-react";
 import type { Quote, QuoteLineItem, QuoteLoadCalc, QuoteSystemType, QuoteTemplate, SavedQuoteItem } from "@/types";
 import { autoFillLoadCalcFromLineItems, computeGrandTotal, computeSubtotal } from "@/lib/quoteCalculations";
@@ -38,6 +39,12 @@ function emptyLoadCalc(): QuoteLoadCalc {
 }
 
 export default function QuoteBuilder({ catalogueOptions, savedItems, templates, branding, initialQuote }: QuoteBuilderProps) {
+  const router = useRouter();
+  // Whether this render started from a blank form (the "new" page) rather
+  // than an already-saved quote -- captured once so it doesn't change
+  // after the first save swaps in a real id, which would otherwise stop
+  // the very redirect below from firing on subsequent re-saves too.
+  const [isNewQuote] = useState(!initialQuote);
   const [systemType, setSystemType] = useState<QuoteSystemType>(initialQuote?.systemType ?? "full_system");
   const [quoteNumber, setQuoteNumber] = useState(initialQuote?.quoteNumber ?? "");
   const [quoteDate, setQuoteDate] = useState(initialQuote?.quoteDate ?? new Date().toISOString().slice(0, 10));
@@ -177,6 +184,13 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
       } else {
         setSavedId(result.id);
         setSaveMessage("Quote saved.");
+        // First save from a blank form: move to this quote's own
+        // bookmarkable edit URL so it can be found again later from the
+        // Quote Builder list, instead of staying on the "new" page with
+        // the saved row only reachable via in-memory state.
+        if (isNewQuote) {
+          router.replace(`/dashboard/quote-builder/${result.id}`);
+        }
       }
     });
   }
@@ -197,6 +211,9 @@ export default function QuoteBuilder({ catalogueOptions, savedItems, templates, 
         return;
       }
       setSavedId(result.id);
+      if (isNewQuote) {
+        router.replace(`/dashboard/quote-builder/${result.id}`);
+      }
       // Not an internal page navigation -- this route returns a
       // Content-Disposition: attachment PDF, so router.push() (meant for
       // client-side route transitions) doesn't apply here.
