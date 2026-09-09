@@ -1,4 +1,4 @@
-import { Plus, ArrowLeftRight } from "lucide-react";
+import { Plus, ArrowLeftRight, ClipboardCheck } from "lucide-react";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StockMovementTable } from "@/components/stock-movement/StockMovementTable";
@@ -9,7 +9,8 @@ import { getCurrentUser } from "@/lib/auth";
 
 export default async function StockMovementPage() {
   const [activeBranchId, user] = await Promise.all([getActiveBranchId(), getCurrentUser()]);
-  const canTransfer = user?.role === "admin" || Boolean(user?.isBranchManager);
+  const isAdmin = user?.role === "admin";
+  const canTransfer = isAdmin || Boolean(user?.isBranchManager);
   const [movements, branches] = await Promise.all([
     getStockMovements(100, activeBranchId),
     getBranches(),
@@ -35,6 +36,15 @@ export default async function StockMovementPage() {
               >
                 <ArrowLeftRight className="h-4 w-4" aria-hidden="true" />
                 Transfer Stock
+              </Link>
+            )}
+            {isAdmin && (
+              <Link
+                href="/dashboard/stock-movement/adjust"
+                className="flex items-center gap-2 rounded-lg border border-brand-green px-4 py-2.5 text-sm font-semibold text-brand-green transition-colors hover:bg-brand-green/10 dark:text-emerald-400 dark:border-emerald-400 dark:hover:bg-emerald-400/10"
+              >
+                <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
+                Adjust Stock
               </Link>
             )}
             <Link
