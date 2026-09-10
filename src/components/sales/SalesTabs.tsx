@@ -191,7 +191,7 @@ export function SalesTabs({
           <DashboardCard
             label="Total Sales"
             value={formatCurrency(summary?.totalSales ?? 0)}
-            helperText={periodLabel}
+            helperText={`${periodLabel} · net of returns`}
             icon={ShoppingCart}
             accent={DASHBOARD_PALETTE.violet}
           />
@@ -199,7 +199,7 @@ export function SalesTabs({
             <DashboardCard
               label="Gross Profit"
               value={formatCurrency(summary?.grossProfit ?? 0)}
-              helperText="Revenue minus cost of goods sold"
+              helperText="Revenue minus cost of goods sold, net of returns"
               icon={PiggyBank}
               accent={DASHBOARD_PALETTE.magentaDark}
             />
