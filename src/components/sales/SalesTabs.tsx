@@ -221,16 +221,22 @@ export function SalesTabs({
         </div>
 
         <div className={`grid grid-cols-1 gap-4 ${isAdmin ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
-          <DashboardSection title={staffName ? `Sales by Branch — ${staffName}` : "Sales by Branch"}>
+          <DashboardSection
+            title={staffName ? `Sales by Branch — ${staffName}` : "Sales by Branch"}
+            subtitle="Gross figures — before returns"
+          >
             <BranchSalesChart data={byBranch ?? []} />
           </DashboardSection>
 
-          <DashboardSection title={staffName ? `Top Products — ${staffName}` : "Top Products"}>
+          <DashboardSection
+            title={staffName ? `Top Products — ${staffName}` : "Top Products"}
+            subtitle="Gross figures — before returns"
+          >
             <TopProductsChart data={topProducts ?? []} />
           </DashboardSection>
 
           {isAdmin && (
-            <DashboardSection title="Sales by Staff">
+            <DashboardSection title="Sales by Staff" subtitle="Gross figures — before returns">
               <StaffSalesChart data={byStaff ?? []} />
             </DashboardSection>
           )}
