@@ -43,6 +43,7 @@ export async function createSale(
   formData: FormData,
 ): Promise<SaleFormState> {
   const customerId = String(formData.get("customerId") ?? "").trim();
+  const customerName = String(formData.get("customerName") ?? "").trim();
   const branchId = String(formData.get("branchId") ?? "").trim();
   const amountPaid = Number(formData.get("amountPaid") || 0);
   const itemsRaw = String(formData.get("items") ?? "");
@@ -69,6 +70,7 @@ export async function createSale(
       unit_price: item.unitPrice,
     })),
     p_amount_paid: amountPaid,
+    p_customer_name: customerId ? null : customerName || null,
   });
 
   if (error) {

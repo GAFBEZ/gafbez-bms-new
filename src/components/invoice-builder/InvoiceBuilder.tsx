@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Download, Printer, Save } from "lucide-react";
 import type { Invoice, InvoiceLineItem, InvoicePayment, QuoteSystemType, SavedQuoteItem } from "@/types";
+import type { PendingReceiptData } from "@/lib/pendingReceipt";
 import type { QuoteBranding } from "@/components/quote-builder/BusinessHeader";
 import type { LineItemCatalogueOption } from "@/components/quote-builder/LineItemsTable";
 import SystemTypeToggle from "@/components/quote-builder/SystemTypeToggle";
@@ -17,6 +18,7 @@ import PaymentTermsSection from "./PaymentTermsSection";
 import { formatCurrency } from "@/lib/format";
 import { computeAmountReceived, computeSubtotal, computeTotal } from "@/lib/invoiceCalculations";
 import { createDefaultLineItems, reconcileLineItemsForSystemType } from "@/lib/invoiceLineItems";
+import { buildInvoiceLineItemsFromSaleItems, peekPendingReceipt, clearPendingReceipt } from "@/lib/pendingReceipt";
 import { saveInvoice, type SaveInvoiceInput } from "@/app/dashboard/invoice-builder/actions";
 
 interface InvoiceBuilderProps {
@@ -47,13 +49,25 @@ export default function InvoiceBuilder({ branding, catalogueOptions, savedItems,
   // after the first save swaps in a real id, which would otherwise stop
   // the very redirect below from firing on subsequent re-saves too.
   const [isNewInvoice] = useState(!initialInvoice);
+  // One-time handoff from Daily Sales' "Record Sale" form (see
+  // src/lib/pendingReceipt.ts): a just-recorded walk-in sale waiting to
+  // become a receipt, read once for a fresh/unsaved invoice only. A plain
+  // (not lazy) read here would also fire for an already-saved invoice
+  // being reopened, which should never touch this. Actually consuming it
+  // (clearing storage) happens in the effect below, once mounted.
+  const [pendingReceipt] = useState<PendingReceiptData | null>(() =>
+    isNewInvoice ? peekPendingReceipt() : null,
+  );
   const [systemType, setSystemType] = useState<QuoteSystemType>(initialInvoice?.systemType ?? "full_system");
   const [invoiceNumber, setInvoiceNumber] = useState(initialInvoice?.invoiceNumber ?? "");
   const [invoiceDate, setInvoiceDate] = useState(initialInvoice?.invoiceDate ?? new Date().toISOString().slice(0, 10));
-  const [clientName, setClientName] = useState(initialInvoice?.clientName ?? "");
+  const [clientName, setClientName] = useState(initialInvoice?.clientName ?? pendingReceipt?.customerName ?? "");
   const [projectLocation, setProjectLocation] = useState(initialInvoice?.projectLocation ?? "");
   const [lineItems, setLineItems] = useState<InvoiceLineItem[]>(
-    initialInvoice?.lineItems ?? createDefaultLineItems(systemType),
+    initialInvoice?.lineItems ??
+      (pendingReceipt && pendingReceipt.items.length > 0
+        ? buildInvoiceLineItemsFromSaleItems(pendingReceipt.items, systemType)
+        : createDefaultLineItems(systemType)),
   );
   const [vatPercent, setVatPercent] = useState(initialInvoice?.vatPercent ?? 0);
   const [depositPercent, setDepositPercent] = useState(initialInvoice?.depositPercent ?? 70);
@@ -62,6 +76,13 @@ export default function InvoiceBuilder({ branding, catalogueOptions, savedItems,
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [isPreparingPdf, setIsPreparingPdf] = useState(false);
   const [isPending, startTransition] = useTransition();
+
+  // Consumes the pending receipt (if any) so revisiting/refreshing this
+  // page doesn't re-apply it -- a real external-system side effect, not
+  // a state sync, so it doesn't call setState.
+  useEffect(() => {
+    if (pendingReceipt) clearPendingReceipt();
+  }, [pendingReceipt]);
 
   const subtotal = useMemo(() => computeSubtotal(lineItems), [lineItems]);
   const total = useMemo(() => computeTotal(subtotal, vatPercent), [subtotal, vatPercent]);

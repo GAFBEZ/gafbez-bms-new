@@ -5,10 +5,11 @@ import Link from "next/link";
 import { AlertCircle, Plus, Trash2 } from "lucide-react";
 import { createSale } from "@/app/dashboard/daily-sales/actions";
 import { formatCurrency } from "@/lib/format";
+import { savePendingReceipt } from "@/lib/pendingReceipt";
 import type { Branch, Customer, Product } from "@/types";
 
 interface SaleFormProps {
-  products: (Pick<Product, "id" | "name" | "sku" | "sellingPrice"> & {
+  products: (Pick<Product, "id" | "name" | "sku" | "sellingPrice" | "category"> & {
     stockByBranch: Record<string, number>;
   })[];
   customers: Pick<Customer, "id" | "name">[];
@@ -59,8 +60,11 @@ export function SaleForm({
   const [items, setItems] = useState<LineItem[]>([emptyRow()]);
   const [amountPaid, setAmountPaid] = useState("0");
   const [branch, setBranch] = useState(lockedBranch?.id ?? defaultBranchId ?? "");
+  const [customerId, setCustomerId] = useState("");
+  const [customerName, setCustomerName] = useState("");
 
-  const customerId = useId();
+  const customerFieldId = useId();
+  const customerNameFieldId = useId();
   const branchFieldId = useId();
   const amountPaidId = useId();
 
@@ -108,19 +112,54 @@ export function SaleForm({
       })),
   );
 
+  /** Stashes this sale's customer name + items right before the form
+   * actually submits, so the Daily Sales list page (which the server
+   * action redirects to on success) can offer to jump into the
+   * Invoice/Receipt Builder pre-filled with them. Daily Sales and the
+   * Invoice Builder are otherwise unrelated features/data models, so
+   * this is a one-time, this-tab-only handoff rather than anything
+   * persisted server-side. */
+  function handleSubmit() {
+    const resolvedCustomerName = customerId
+      ? (customers.find((customer) => customer.id === customerId)?.name ?? "")
+      : customerName.trim();
+
+    savePendingReceipt({
+      customerName: resolvedCustomerName,
+      items: items
+        .filter((item) => item.productId)
+        .map((item) => {
+          const product = productById.get(item.productId);
+          return {
+            name: product?.name ?? "Item",
+            category: product?.category ?? "",
+            quantity: toNumber(item.quantity),
+            unitPrice: toNumber(item.unitPrice),
+          };
+        }),
+    });
+  }
+
   return (
     <form
       action={formAction}
+      onSubmit={handleSubmit}
       className="flex flex-col gap-5 rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm"
     >
       <input type="hidden" name="items" value={serializedItems} />
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div>
-          <label htmlFor={customerId} className={labelClasses}>
+          <label htmlFor={customerFieldId} className={labelClasses}>
             Customer <span className="font-normal text-gray-400 dark:text-gray-500">(optional)</span>
           </label>
-          <select id={customerId} name="customerId" className={inputClasses}>
+          <select
+            id={customerFieldId}
+            name="customerId"
+            value={customerId}
+            onChange={(event) => setCustomerId(event.target.value)}
+            className={inputClasses}
+          >
             <option value="">Walk-in customer</option>
             {customers.map((customer) => (
               <option key={customer.id} value={customer.id}>
@@ -128,6 +167,22 @@ export function SaleForm({
               </option>
             ))}
           </select>
+          {!customerId && (
+            <div className="mt-2">
+              <label htmlFor={customerNameFieldId} className="mb-1 block text-xs text-gray-500 dark:text-gray-400">
+                Or type their name (optional, for a receipt/invoice)
+              </label>
+              <input
+                id={customerNameFieldId}
+                name="customerName"
+                type="text"
+                placeholder="e.g. Chidi Okafor"
+                value={customerName}
+                onChange={(event) => setCustomerName(event.target.value)}
+                className={inputClasses}
+              />
+            </div>
+          )}
         </div>
 
         <div>

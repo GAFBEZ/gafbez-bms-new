@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SalesTabs } from "@/components/sales/SalesTabs";
+import { PendingReceiptBanner } from "@/components/sales/PendingReceiptBanner";
 import { getSales } from "@/lib/sales";
 import { getBranches } from "@/lib/branches";
 import { getActiveBranchId } from "@/lib/activeBranch";
@@ -135,6 +136,7 @@ export default async function DailySalesPage({
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Daily Sales" description="Record and review sales, and analyse trends and branch performance over time." />
+      <PendingReceiptBanner />
       <SalesTabs
         initialTab={initialTab}
         sales={sales ?? []}

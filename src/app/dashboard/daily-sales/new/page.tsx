@@ -21,11 +21,12 @@ export default async function NewSalePage() {
 
   const activeProducts = products
     .filter((product) => product.isActive)
-    .map(({ id, name, sku, sellingPrice }) => ({
+    .map(({ id, name, sku, sellingPrice, category }) => ({
       id,
       name,
       sku,
       sellingPrice,
+      category,
       stockByBranch: stockByBranch[id] ?? {},
     }));
 
