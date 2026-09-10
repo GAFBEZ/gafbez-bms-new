@@ -10,6 +10,7 @@ import { DashboardSection } from "@/components/dashboard/DashboardSection";
 import { BranchSalesChart } from "@/components/sales/BranchSalesChart";
 import { StaffSalesChart } from "@/components/sales/StaffSalesChart";
 import { TopProductsChart } from "@/components/sales/TopProductsChart";
+import { ReturnsTable } from "@/components/sales/ReturnsTable";
 import { SalesTrendChart } from "@/components/sales/SalesTrendChart";
 import { SalesDateFilter } from "@/components/sales/SalesDateFilter";
 import { SalesStaffFilter } from "@/components/sales/SalesStaffFilter";
@@ -23,6 +24,8 @@ import type {
   TopProductSummary,
   SalesTrendPoint,
   SalesSummary,
+  ReturnsSummary,
+  ReturnDetail,
   BonusRates,
   StaffBonusSummary,
 } from "@/types";
@@ -50,6 +53,8 @@ interface SalesTabsProps {
   byStaff: StaffSalesSummary[] | null;
   topProducts: TopProductSummary[] | null;
   trend: SalesTrendPoint[] | null;
+  returnsSummary: ReturnsSummary | null;
+  returnDetails: ReturnDetail[] | null;
   periodLabel: string;
   range: RangeKey | null;
   customRange: boolean;
@@ -92,6 +97,8 @@ export function SalesTabs({
   byStaff,
   topProducts,
   trend,
+  returnsSummary,
+  returnDetails,
   periodLabel,
   range,
   customRange,
@@ -221,26 +228,31 @@ export function SalesTabs({
         </div>
 
         <div className={`grid grid-cols-1 gap-4 ${isAdmin ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
-          <DashboardSection
-            title={staffName ? `Sales by Branch — ${staffName}` : "Sales by Branch"}
-            subtitle="Gross figures — before returns"
-          >
+          <DashboardSection title={staffName ? `Sales by Branch — ${staffName}` : "Sales by Branch"}>
             <BranchSalesChart data={byBranch ?? []} />
           </DashboardSection>
 
-          <DashboardSection
-            title={staffName ? `Top Products — ${staffName}` : "Top Products"}
-            subtitle="Gross figures — before returns"
-          >
+          <DashboardSection title={staffName ? `Top Products — ${staffName}` : "Top Products"}>
             <TopProductsChart data={topProducts ?? []} />
           </DashboardSection>
 
           {isAdmin && (
-            <DashboardSection title="Sales by Staff" subtitle="Gross figures — before returns">
+            <DashboardSection title="Sales by Staff">
               <StaffSalesChart data={byStaff ?? []} />
             </DashboardSection>
           )}
         </div>
+
+        <DashboardSection
+          title="Returns"
+          subtitle={
+            returnsSummary && returnsSummary.totalQuantity > 0
+              ? `${formatCurrency(returnsSummary.totalValue)} across ${returnsSummary.totalQuantity} item${returnsSummary.totalQuantity === 1 ? "" : "s"} -- already subtracted from every figure above`
+              : "Already subtracted from every figure above"
+          }
+        >
+          <ReturnsTable data={returnDetails ?? []} isAdmin={isAdmin} />
+        </DashboardSection>
 
         <DashboardSection title={staffName ? `Daily Sales Trend — ${staffName}` : "Daily Sales Trend"}>
           <SalesTrendChart data={trend ?? []} />

@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getStaffNameMap } from "@/lib/staff";
 import type {
   BranchSalesSummary,
+  ReturnDetail,
+  ReturnsSummary,
   SalesSummary,
   SalesTrendPoint,
   StaffSalesSummary,
@@ -21,9 +23,21 @@ interface SaleItemCogsRow {
   unit_cost: number;
 }
 
-interface ReturnAggregateRow {
+interface ReturnRow {
+  id: string;
   quantity: number;
-  sale_items: { unit_price: number; unit_cost: number } | null;
+  created_at: string;
+  sale_items: {
+    product_id: string;
+    unit_price: number;
+    unit_cost: number;
+    products: { name: string; sku: string } | null;
+    sales: {
+      branch_id: string;
+      created_by: string | null;
+      branches: { name: string } | null;
+    } | null;
+  } | null;
 }
 
 interface ReturnTotals {
@@ -106,17 +120,20 @@ async function fetchCogs(window: DateWindow, staffId?: string): Promise<number |
 }
 
 /**
- * Revenue and cost value of returns in the window, both attributed to the
- * *original sale's* date (not the return's own date) so a return simply
- * nets against the sale it belongs to rather than needing its own separate
- * time bucket. Double-nested filter (sale_returns -> sale_items -> sales)
- * for the same reason fetchCogs needs one level of it.
+ * Every return in the window, attributed to the *original sale's* date and
+ * branch/staff (not the return's own) -- a return simply nets against the
+ * sale/branch/staff/product it belongs to rather than needing its own
+ * separate bucket. Shared by every function below that needs to net
+ * returns out of a gross figure, plus the Returns section's own detail
+ * list and summary.
  */
-async function fetchReturns(window: DateWindow, staffId?: string): Promise<ReturnTotals | null> {
+async function fetchReturnRows(window: DateWindow, staffId?: string): Promise<ReturnRow[] | null> {
   const supabase = await createClient();
-  let query = supabase
-    .from("sale_returns")
-    .select("quantity, sale_items!inner(unit_price, unit_cost, sales!inner(created_at, created_by))");
+  let query = supabase.from("sale_returns").select(
+    `id, quantity, created_at,
+     sale_items!inner(product_id, unit_price, unit_cost, products(name, sku),
+       sales!inner(branch_id, created_at, created_by, branches(name)))`,
+  );
 
   if (window.since) query = query.gte("sale_items.sales.created_at", window.since.toISOString());
   if (window.until) query = query.lt("sale_items.sales.created_at", window.until.toISOString());
@@ -129,7 +146,16 @@ async function fetchReturns(window: DateWindow, staffId?: string): Promise<Retur
     return null;
   }
 
-  return (data as unknown as ReturnAggregateRow[]).reduce<ReturnTotals>(
+  return data as unknown as ReturnRow[];
+}
+
+/** Revenue and cost value of every return in the window -- used to net
+ * Total Sales/Gross Profit in getSalesSummary. */
+async function fetchReturnTotals(window: DateWindow, staffId?: string): Promise<ReturnTotals | null> {
+  const rows = await fetchReturnRows(window, staffId);
+  if (!rows) return null;
+
+  return rows.reduce<ReturnTotals>(
     (acc, row) => ({
       value: acc.value + row.quantity * Number(row.sale_items?.unit_price ?? 0),
       cogs: acc.cogs + row.quantity * Number(row.sale_items?.unit_cost ?? 0),
@@ -139,19 +165,71 @@ async function fetchReturns(window: DateWindow, staffId?: string): Promise<Retur
 }
 
 /**
+ * Total value/quantity of returns in the window -- the headline figure for
+ * the Returns section (see getReturnDetails for the itemized list it
+ * summarizes).
+ */
+export async function getReturnsSummary(window: DateWindow = {}, staffId?: string): Promise<ReturnsSummary | null> {
+  const rows = await fetchReturnRows(window, staffId);
+  if (!rows) return null;
+
+  return rows.reduce<ReturnsSummary>(
+    (acc, row) => ({
+      totalValue: acc.totalValue + row.quantity * Number(row.sale_items?.unit_price ?? 0),
+      totalQuantity: acc.totalQuantity + row.quantity,
+    }),
+    { totalValue: 0, totalQuantity: 0 },
+  );
+}
+
+/**
+ * Every individual return in the window, newest first -- product, quantity,
+ * value, and which branch/staff member's sale it came from, so it's
+ * possible to see exactly what's being subtracted from the gross-looking
+ * figures above without having to dig through Stock Movement.
+ */
+export async function getReturnDetails(
+  window: DateWindow = {},
+  staffId?: string,
+  limit = 100,
+): Promise<ReturnDetail[] | null> {
+  const [rows, staffNames] = await Promise.all([fetchReturnRows(window, staffId), getStaffNameMap()]);
+  if (!rows) return null;
+
+  return rows
+    .map((row) => {
+      const createdBy = row.sale_items?.sales?.created_by ?? null;
+      return {
+        id: row.id,
+        productName: row.sale_items?.products?.name ?? "Unknown product",
+        sku: row.sale_items?.products?.sku ?? "—",
+        quantity: row.quantity,
+        value: row.quantity * Number(row.sale_items?.unit_price ?? 0),
+        branchName: row.sale_items?.sales?.branches?.name ?? "Unknown branch",
+        staffName: createdBy ? (staffNames[createdBy] ?? "Former staff member") : "Unattributed",
+        date: row.created_at,
+      };
+    })
+    .sort((a, b) => (a.date < b.date ? 1 : -1))
+    .slice(0, limit);
+}
+
+/**
  * Always aggregates across every branch, regardless of the global branch
  * filter — a branch comparison is the point of this chart, so scoping it
  * to one branch would leave a single trivial bar. Pass a days-based window,
  * a rangeToWindow() for a picked date range, or {} for all-time. An
  * optional staffId narrows this to one salesperson's branch split (the
  * Sales Tracker staff slicer), while still comparing across every branch.
+ * Net of returns (see getReturnsSummary/getReturnDetails for the amounts
+ * being subtracted), same as the summary cards above.
  */
 export async function getSalesByBranch(
   window: DateWindow = {},
   staffId?: string,
 ): Promise<BranchSalesSummary[] | null> {
-  const rows = await fetchSales(window, staffId);
-  if (!rows) return null;
+  const [rows, returnRows] = await Promise.all([fetchSales(window, staffId), fetchReturnRows(window, staffId)]);
+  if (!rows || !returnRows) return null;
 
   const totals = new Map<string, BranchSalesSummary>();
   for (const row of rows) {
@@ -168,6 +246,12 @@ export async function getSalesByBranch(
     }
   }
 
+  for (const returnRow of returnRows) {
+    const branchId = returnRow.sale_items?.sales?.branch_id;
+    const existing = branchId ? totals.get(branchId) : undefined;
+    if (existing) existing.total -= returnRow.quantity * Number(returnRow.sale_items?.unit_price ?? 0);
+  }
+
   return Array.from(totals.values()).sort((a, b) => b.total - a.total);
 }
 
@@ -176,12 +260,19 @@ export async function getSalesByBranch(
  * branch (same "always all-branch" reasoning as getSalesByBranch). A sale
  * with no `created_by` (recorded before Staff Attribution shipped, or by a
  * deleted account) is grouped under "Unattributed" rather than dropped.
+ * Net of returns, attributed to the staff member whose sale was returned
+ * (not whoever happened to process the return) -- transactionCount stays
+ * gross, same reasoning as getSalesSummary.
  */
 export async function getSalesByStaff(
   window: DateWindow = {},
 ): Promise<StaffSalesSummary[] | null> {
-  const [rows, staffNames] = await Promise.all([fetchSales(window), getStaffNameMap()]);
-  if (!rows) return null;
+  const [rows, returnRows, staffNames] = await Promise.all([
+    fetchSales(window),
+    fetchReturnRows(window),
+    getStaffNameMap(),
+  ]);
+  if (!rows || !returnRows) return null;
 
   const totals = new Map<string, StaffSalesSummary>();
   for (const row of rows) {
@@ -201,6 +292,12 @@ export async function getSalesByStaff(
     }
   }
 
+  for (const returnRow of returnRows) {
+    const key = returnRow.sale_items?.sales?.created_by ?? "unattributed";
+    const existing = totals.get(key);
+    if (existing) existing.total -= returnRow.quantity * Number(returnRow.sale_items?.unit_price ?? 0);
+  }
+
   return Array.from(totals.values()).sort((a, b) => b.total - a.total);
 }
 
@@ -212,12 +309,13 @@ interface SaleItemProductRow {
 }
 
 /**
- * Top products by revenue in the window, gross (not net of returns -- same
- * "activity view" reasoning as getSalesByBranch/getSalesByStaff above, not
- * the profitability summary). Company-wide unless staffId narrows it to
- * one salesperson's top products (the Sales Tracker staff slicer). Joined
- * via `sales!inner(created_at)` so the date filter applies to the sale's
- * date, same technique as fetchCogs.
+ * Top products by revenue in the window, net of returns -- a fully
+ * returned product drops out of the ranking entirely (filtered once
+ * quantitySold <= 0) rather than still showing up as if it were kept, and
+ * a partially-returned one shows only what's actually still sold.
+ * Company-wide unless staffId narrows it to one salesperson's top products
+ * (the Sales Tracker staff slicer). Joined via `sales!inner(created_at)` so
+ * the date filter applies to the sale's date, same technique as fetchCogs.
  */
 export async function getTopProducts(
   window: DateWindow = {},
@@ -233,9 +331,9 @@ export async function getTopProducts(
   if (window.until) query = query.lt("sales.created_at", window.until.toISOString());
   if (staffId) query = query.eq("sales.created_by", staffId);
 
-  const { data, error } = await query;
+  const [{ data, error }, returnRows] = await Promise.all([query, fetchReturnRows(window, staffId)]);
 
-  if (error || !data) {
+  if (error || !data || !returnRows) {
     console.warn("Failed to load top products:", error?.message);
     return null;
   }
@@ -258,7 +356,17 @@ export async function getTopProducts(
     }
   }
 
+  for (const returnRow of returnRows) {
+    const productId = returnRow.sale_items?.product_id;
+    const existing = productId ? totals.get(productId) : undefined;
+    if (existing) {
+      existing.quantitySold -= returnRow.quantity;
+      existing.revenue -= returnRow.quantity * Number(returnRow.sale_items?.unit_price ?? 0);
+    }
+  }
+
   return Array.from(totals.values())
+    .filter((row) => row.quantitySold > 0)
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, limit);
 }
@@ -292,18 +400,21 @@ export async function getSalesTrend(window: DateWindow, staffId?: string): Promi
 }
 
 /**
- * Total Sales and Gross Profit here are net of returns (see fetchReturns) —
- * this is the "profitability" summary, so it should stay accurate.
- * Transaction count/average sale, and the by-branch/trend charts elsewhere
- * in this file, deliberately stay gross (a return isn't a new transaction,
- * and "activity" views like a daily trend are a normal thing to report
- * gross in most small-business tooling).
+ * Total Sales and Gross Profit here are net of returns (see
+ * fetchReturnTotals), same as Sales by Branch/Staff/Top Products below --
+ * every money figure on this dashboard reflects what was actually kept,
+ * not what was originally rung up before a return reversed some of it.
+ * Transaction count/average sale, and the daily trend chart, deliberately
+ * stay gross: a return isn't a new transaction, and an "activity" view
+ * like a daily trend is a normal thing to report gross in most
+ * small-business tooling. See getReturnsSummary/getReturnDetails for the
+ * Returns section, which shows exactly what's been netted out.
  */
 export async function getSalesSummary(window: DateWindow = {}, staffId?: string): Promise<SalesSummary | null> {
   const [rows, totalCogsGross, returns] = await Promise.all([
     fetchSales(window, staffId),
     fetchCogs(window, staffId),
-    fetchReturns(window, staffId),
+    fetchReturnTotals(window, staffId),
   ]);
   if (!rows || totalCogsGross === null || returns === null) return null;
 

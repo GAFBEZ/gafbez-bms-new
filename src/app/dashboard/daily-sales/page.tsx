@@ -12,6 +12,8 @@ import {
   getTopProducts,
   getSalesSummary,
   getSalesTrend,
+  getReturnsSummary,
+  getReturnDetails,
   daysToWindow,
   rangeToWindow,
   type DateWindow,
@@ -112,21 +114,41 @@ export default async function DailySalesPage({
   const bonusMonthLabel = MONTH_LABEL_FORMATTER.format(bonusWindow.since);
   const bonusStaffId = isAdmin ? undefined : user?.id;
 
-  const [sales, branches, staffOptions, summary, byBranch, byStaff, topProducts, trend, bonusRates, bonusSummaries] =
-    await Promise.all([
-      getSales(100, activeBranchId),
-      getBranches(),
-      isAdmin ? getStaffOptions() : Promise.resolve([]),
-      getSalesSummary(window, staffId ?? undefined),
-      getSalesByBranch(window, staffId ?? undefined),
-      isAdmin ? getSalesByStaff(window) : Promise.resolve(null),
-      getTopProducts(window, 8, staffId ?? undefined),
-      getSalesTrend(trendWindow, staffId ?? undefined),
-      getBonusRates(),
-      getStaffBonusSummary(bonusWindow, bonusStaffId),
-    ]);
+  const [
+    sales,
+    branches,
+    staffOptions,
+    summary,
+    byBranch,
+    byStaff,
+    topProducts,
+    trend,
+    returnsSummary,
+    returnDetails,
+    bonusRates,
+    bonusSummaries,
+  ] = await Promise.all([
+    getSales(100, activeBranchId),
+    getBranches(),
+    isAdmin ? getStaffOptions() : Promise.resolve([]),
+    getSalesSummary(window, staffId ?? undefined),
+    getSalesByBranch(window, staffId ?? undefined),
+    isAdmin ? getSalesByStaff(window) : Promise.resolve(null),
+    getTopProducts(window, 8, staffId ?? undefined),
+    getSalesTrend(trendWindow, staffId ?? undefined),
+    getReturnsSummary(window, staffId ?? undefined),
+    getReturnDetails(window, staffId ?? undefined),
+    getBonusRates(),
+    getStaffBonusSummary(bonusWindow, bonusStaffId),
+  ]);
 
-  const dataIsLive = summary !== null && byBranch !== null && topProducts !== null && trend !== null;
+  const dataIsLive =
+    summary !== null &&
+    byBranch !== null &&
+    topProducts !== null &&
+    trend !== null &&
+    returnsSummary !== null &&
+    returnDetails !== null;
   const bonusDataIsLive = bonusRates !== null && bonusSummaries !== null;
   const activeBranchName = branches.find((b) => b.id === activeBranchId)?.name;
   const hasTrackerParams = Boolean(rawRange || rawFrom || rawTo || rawStaff);
@@ -149,6 +171,8 @@ export default async function DailySalesPage({
         byStaff={byStaff}
         topProducts={topProducts}
         trend={trend}
+        returnsSummary={returnsSummary}
+        returnDetails={returnDetails}
         periodLabel={periodLabel}
         range={range}
         customRange={customRange}

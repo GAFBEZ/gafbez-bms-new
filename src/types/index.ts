@@ -328,6 +328,22 @@ export interface SalesSummary {
   grossProfit: number;
 }
 
+export interface ReturnsSummary {
+  totalValue: number;
+  totalQuantity: number;
+}
+
+export interface ReturnDetail {
+  id: string;
+  productName: string;
+  sku: string;
+  quantity: number;
+  value: number;
+  branchName: string;
+  staffName: string;
+  date: string;
+}
+
 export interface Expense {
   id: string;
   branchId: string;
