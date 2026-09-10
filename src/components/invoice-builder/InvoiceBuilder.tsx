@@ -58,6 +58,13 @@ export default function InvoiceBuilder({ branding, catalogueOptions, savedItems,
   const [pendingReceipt] = useState<PendingReceiptData | null>(() =>
     isNewInvoice ? peekPendingReceipt() : null,
   );
+  // Persisted on the saved invoice (is_quick_receipt) so it stays
+  // consistent on reopen -- true only for a document that started from
+  // the Daily Sales walk-in handoff above, since that sale was paid in
+  // full on the spot and has no deposit/balance schedule to record.
+  // Every other invoice (including ones saved before this existed)
+  // defaults to false and keeps Payment Record/Payment Terms as before.
+  const [isQuickReceipt] = useState(initialInvoice?.isQuickReceipt ?? Boolean(pendingReceipt));
   const [systemType, setSystemType] = useState<QuoteSystemType>(initialInvoice?.systemType ?? "full_system");
   const [invoiceNumber, setInvoiceNumber] = useState(initialInvoice?.invoiceNumber ?? "");
   const [invoiceDate, setInvoiceDate] = useState(initialInvoice?.invoiceDate ?? new Date().toISOString().slice(0, 10));
@@ -107,6 +114,7 @@ export default function InvoiceBuilder({ branding, catalogueOptions, savedItems,
       total,
       depositPercent,
       payments,
+      isQuickReceipt,
     };
   }
 
@@ -203,22 +211,26 @@ export default function InvoiceBuilder({ branding, catalogueOptions, savedItems,
             Payment Terms staying on page one while just the signature
             block and footer spill onto an otherwise-empty page two). */}
         <div className="mt-4 avoid-page-break print:mt-1">
-          <div>
-            <p className="mb-1.5 text-sm font-extrabold uppercase tracking-wide text-brand-green print:mb-0.5 print:text-xs">
-              Payment Record
-            </p>
-            <PaymentRecordTable payments={payments} onChange={setPayments} />
-          </div>
+          {!isQuickReceipt && (
+            <>
+              <div>
+                <p className="mb-1.5 text-sm font-extrabold uppercase tracking-wide text-brand-green print:mb-0.5 print:text-xs">
+                  Payment Record
+                </p>
+                <PaymentRecordTable payments={payments} onChange={setPayments} />
+              </div>
 
-          <p className="mt-3 text-xs text-black print:mt-1">
-            <span className="font-bold">Receipt Confirmation: </span>
-            This document confirms receipt of <span className="font-semibold">{formatCurrency(amountReceived)}</span> from
-            the client as payment toward the above solar installation project.
-          </p>
+              <p className="mt-3 text-xs text-black print:mt-1">
+                <span className="font-bold">Receipt Confirmation: </span>
+                This document confirms receipt of <span className="font-semibold">{formatCurrency(amountReceived)}</span>{" "}
+                from the client as payment toward the above solar installation project.
+              </p>
 
-          <div className="mt-4 print:mt-1">
-            <PaymentTermsSection paymentTerms={branding.invoicePaymentTerms} />
-          </div>
+              <div className="mt-4 print:mt-1">
+                <PaymentTermsSection paymentTerms={branding.invoicePaymentTerms} />
+              </div>
+            </>
+          )}
 
           <div className="mt-4 grid grid-cols-2 gap-6 text-xs text-black print:mt-1.5 print:gap-4">
             <div>

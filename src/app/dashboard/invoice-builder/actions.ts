@@ -20,6 +20,7 @@ export interface SaveInvoiceInput {
   total: number;
   depositPercent: number;
   payments: InvoicePayment[];
+  isQuickReceipt: boolean;
 }
 
 export async function saveInvoice(input: SaveInvoiceInput): Promise<{ id: string } | { error: string }> {
@@ -41,6 +42,7 @@ export async function saveInvoice(input: SaveInvoiceInput): Promise<{ id: string
     total: input.total,
     deposit_percent: input.depositPercent,
     payments: input.payments,
+    is_quick_receipt: input.isQuickReceipt,
   };
 
   const { data, error } = input.id

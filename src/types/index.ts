@@ -270,6 +270,7 @@ export interface SaleDetailItem {
   productId: string;
   productName: string;
   productSku: string;
+  productCategory: string;
   quantity: number;
   unitPrice: number;
   quantityReturned: number;
@@ -763,6 +764,11 @@ export interface Invoice {
   total: number;
   depositPercent: number;
   payments: InvoicePayment[];
+  /** True for a quick receipt generated from a Daily Sales walk-in sale
+   * -- hides Payment Record/Payment Terms, since that sale was paid in
+   * full on the spot and has no deposit/balance schedule. False for a
+   * normal invoice (e.g. a solar installation job), which keeps them. */
+  isQuickReceipt: boolean;
   createdAt: string;
   updatedAt: string;
 }

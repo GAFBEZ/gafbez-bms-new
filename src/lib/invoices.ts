@@ -20,6 +20,7 @@ interface InvoiceRow {
   total: number;
   deposit_percent: number;
   payments: InvoicePayment[] | null;
+  is_quick_receipt: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -40,6 +41,7 @@ function mapInvoiceRow(row: InvoiceRow): Invoice {
     total: Number(row.total),
     depositPercent: Number(row.deposit_percent),
     payments: row.payments ?? [],
+    isQuickReceipt: row.is_quick_receipt,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

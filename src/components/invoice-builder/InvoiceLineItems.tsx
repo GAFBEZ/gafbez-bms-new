@@ -20,6 +20,31 @@ const SAVED_PREFIX = "saved:";
 const fieldClasses =
   "w-full rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-900 focus:border-brand-green focus:outline-none focus:ring-2 focus:ring-brand-green/30 print:hidden";
 
+interface RowMeta {
+  /** A fixed row always carries a default label (see defaultLineItem), so
+   * "untouched" is judged by the actual figures instead -- an
+   * invoice/receipt auto-filled from a sale with only 3 of the 8
+   * categories shouldn't print 5 blank "--/--/₦0" rows to the client;
+   * the full set still shows while editing so staff can fill in more. */
+  hasContent: boolean;
+  /** This row's S/N among only the rows with content, for print -- so a
+   * printed document numbers 1, 2, 3 with no gaps even when the visible
+   * rows aren't the first ones in the fixed category order. */
+  printNumber: number;
+}
+
+/** Pulled out of the component so the running count is a plain local to
+ * one function call rather than a variable mutated across a render's
+ * JSX-building closure. */
+function computeRowMeta(items: InvoiceLineItem[]): RowMeta[] {
+  let printNumber = 0;
+  return items.map((item) => {
+    const hasContent = item.quantity > 0 || item.unitPrice > 0 || item.description.trim() !== "";
+    if (hasContent) printNumber += 1;
+    return { hasContent, printNumber };
+  });
+}
+
 /**
  * Fixed category rows (Solar Panels/Inverter/Battery/Support Structure/
  * Cable/Accessories/Logistics & Installation/Other) rather than the
@@ -39,6 +64,7 @@ export default function InvoiceLineItems({ items, onChange, catalogueOptions, sa
     systemType === "inverter_only"
       ? catalogueOptions.filter((option) => option.bonusCategory !== "solar_panel")
       : catalogueOptions;
+  const rowMeta = computeRowMeta(items);
 
   function updateItem(id: string, patch: Partial<InvoiceLineItem>) {
     onChange(items.map((item) => (item.id === id ? { ...item, ...patch } : item)));
@@ -89,77 +115,85 @@ export default function InvoiceLineItems({ items, onChange, catalogueOptions, sa
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 print:divide-y-0">
-          {items.map((item, index) => (
-            <tr key={item.id} className={`avoid-page-break ${index % 2 === 1 ? "bg-gray-50 print:bg-gray-50" : ""}`}>
-              <td className="px-3 py-1.5 align-top font-semibold text-black print:border print:border-brand-green/20 print:px-1.5 print:py-0.5">
-                {index + 1}
-              </td>
-              <td className="px-3 py-1.5 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-0.5">
-                <select
-                  value={item.productId ? `${PRODUCT_PREFIX}${item.productId}` : CUSTOM_OPTION_VALUE}
-                  onChange={(e) => handleSelect(item.id, e.target.value)}
-                  className={`${fieldClasses} mb-1.5`}
-                >
-                  <option value={CUSTOM_OPTION_VALUE}>Custom item…</option>
-                  {savedItems.length > 0 && (
-                    <optgroup label="Your Saved Items">
-                      {savedItems.map((option) => (
-                        <option key={option.id} value={`${SAVED_PREFIX}${option.id}`}>
+          {items.map((item, index) => {
+            const { hasContent, printNumber } = rowMeta[index];
+
+            return (
+              <tr
+                key={item.id}
+                className={`avoid-page-break ${hasContent ? "" : "print:hidden"} ${index % 2 === 1 ? "bg-gray-50 print:bg-gray-50" : ""}`}
+              >
+                <td className="px-3 py-1.5 align-top font-semibold text-black print:border print:border-brand-green/20 print:px-1.5 print:py-0.5">
+                  <span className="print:hidden">{index + 1}</span>
+                  <PrintValue>{printNumber}</PrintValue>
+                </td>
+                <td className="px-3 py-1.5 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-0.5">
+                  <select
+                    value={item.productId ? `${PRODUCT_PREFIX}${item.productId}` : CUSTOM_OPTION_VALUE}
+                    onChange={(e) => handleSelect(item.id, e.target.value)}
+                    className={`${fieldClasses} mb-1.5`}
+                  >
+                    <option value={CUSTOM_OPTION_VALUE}>Custom item…</option>
+                    {savedItems.length > 0 && (
+                      <optgroup label="Your Saved Items">
+                        {savedItems.map((option) => (
+                          <option key={option.id} value={`${SAVED_PREFIX}${option.id}`}>
+                            {option.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    <optgroup label="Catalogue Products">
+                      {visibleOptions.map((option) => (
+                        <option key={option.id} value={`${PRODUCT_PREFIX}${option.id}`}>
                           {option.name}
                         </option>
                       ))}
                     </optgroup>
-                  )}
-                  <optgroup label="Catalogue Products">
-                    {visibleOptions.map((option) => (
-                      <option key={option.id} value={`${PRODUCT_PREFIX}${option.id}`}>
-                        {option.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                </select>
-                <input
-                  type="text"
-                  value={item.label}
-                  onChange={(e) => updateItem(item.id, { label: e.target.value })}
-                  placeholder={item.id === "other" ? "Other (specify)" : "Item name"}
-                  className={fieldClasses}
-                />
-                <PrintValue className="font-semibold text-brand-green print:leading-tight">{item.label || "--"}</PrintValue>
-              </td>
-              <td className="px-3 py-1.5 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-0.5">
-                <textarea
-                  value={item.description}
-                  onChange={(e) => updateItem(item.id, { description: e.target.value })}
-                  placeholder="Description"
-                  rows={2}
-                  className={`${fieldClasses} resize-none`}
-                />
-                <PrintValue className="text-black print:leading-tight">{item.description || "--"}</PrintValue>
-              </td>
-              <td className="px-3 py-1.5 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-0.5">
-                <NumberInput
-                  min={0}
-                  value={item.quantity}
-                  onChange={(quantity) => updateItem(item.id, { quantity })}
-                  className={fieldClasses}
-                />
-                <PrintValue className="text-black">{item.quantity || "--"}</PrintValue>
-              </td>
-              <td className="px-3 py-1.5 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-0.5">
-                <NumberInput
-                  min={0}
-                  value={item.unitPrice}
-                  onChange={(unitPrice) => updateItem(item.id, { unitPrice })}
-                  className={fieldClasses}
-                />
-                <PrintValue className="text-black">{item.unitPrice ? formatCurrency(item.unitPrice) : "--"}</PrintValue>
-              </td>
-              <td className="whitespace-nowrap px-3 py-1.5 align-top font-bold text-brand-green print:border print:border-brand-green/20 print:px-1.5 print:py-0.5">
-                {formatCurrency(computeLineAmount(item))}
-              </td>
-            </tr>
-          ))}
+                  </select>
+                  <input
+                    type="text"
+                    value={item.label}
+                    onChange={(e) => updateItem(item.id, { label: e.target.value })}
+                    placeholder={item.id === "other" ? "Other (specify)" : "Item name"}
+                    className={fieldClasses}
+                  />
+                  <PrintValue className="font-semibold text-brand-green print:leading-tight">{item.label || "--"}</PrintValue>
+                </td>
+                <td className="px-3 py-1.5 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-0.5">
+                  <textarea
+                    value={item.description}
+                    onChange={(e) => updateItem(item.id, { description: e.target.value })}
+                    placeholder="Description"
+                    rows={2}
+                    className={`${fieldClasses} resize-none`}
+                  />
+                  <PrintValue className="text-black print:leading-tight">{item.description || "--"}</PrintValue>
+                </td>
+                <td className="px-3 py-1.5 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-0.5">
+                  <NumberInput
+                    min={0}
+                    value={item.quantity}
+                    onChange={(quantity) => updateItem(item.id, { quantity })}
+                    className={fieldClasses}
+                  />
+                  <PrintValue className="text-black">{item.quantity || "--"}</PrintValue>
+                </td>
+                <td className="px-3 py-1.5 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-0.5">
+                  <NumberInput
+                    min={0}
+                    value={item.unitPrice}
+                    onChange={(unitPrice) => updateItem(item.id, { unitPrice })}
+                    className={fieldClasses}
+                  />
+                  <PrintValue className="text-black">{item.unitPrice ? formatCurrency(item.unitPrice) : "--"}</PrintValue>
+                </td>
+                <td className="whitespace-nowrap px-3 py-1.5 align-top font-bold text-brand-green print:border print:border-brand-green/20 print:px-1.5 print:py-0.5">
+                  {formatCurrency(computeLineAmount(item))}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

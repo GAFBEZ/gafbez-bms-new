@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ReturnItemForm } from "@/components/sales/ReturnItemForm";
+import { GenerateReceiptButton } from "@/components/sales/GenerateReceiptButton";
 import { getSale } from "@/lib/sales";
 import { formatCurrency, formatDate, formatTime } from "@/lib/format";
 import type { SaleStatus } from "@/types";
@@ -28,6 +29,15 @@ export default async function SaleDetailPage({
 
   if (!sale) notFound();
 
+  const receiptItems = sale.items
+    .filter((item) => item.quantity - item.quantityReturned > 0)
+    .map((item) => ({
+      name: item.productName,
+      category: item.productCategory,
+      quantity: item.quantity - item.quantityReturned,
+      unitPrice: item.unitPrice,
+    }));
+
   return (
     <div className="flex flex-col gap-6">
       <Link href="/dashboard/daily-sales" className="text-sm font-semibold text-brand-green dark:text-emerald-400">
@@ -37,6 +47,7 @@ export default async function SaleDetailPage({
       <PageHeader
         title={sale.customerName ?? "Walk-in customer"}
         description={`${sale.branchName} · ${formatDate(sale.createdAt)} at ${formatTime(sale.createdAt)}`}
+        actions={<GenerateReceiptButton customerName={sale.customerName ?? ""} items={receiptItems} />}
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

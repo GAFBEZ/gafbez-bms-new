@@ -87,7 +87,7 @@ interface SaleDetailRow {
     product_id: string;
     quantity: number;
     unit_price: number;
-    products: { name: string; sku: string } | null;
+    products: { name: string; sku: string; category: string } | null;
     sale_returns: { quantity: number }[];
   }[];
 }
@@ -99,7 +99,7 @@ export async function getSale(id: string): Promise<SaleDetail | null> {
     .select(
       `id, customer_id, customer_name, branch_id, total_amount, amount_paid, status, created_at,
        customers(name), branches(name),
-       sale_items(id, product_id, quantity, unit_price, products(name, sku), sale_returns(quantity))`,
+       sale_items(id, product_id, quantity, unit_price, products(name, sku, category), sale_returns(quantity))`,
     )
     .eq("id", id)
     .single();
@@ -123,6 +123,7 @@ export async function getSale(id: string): Promise<SaleDetail | null> {
       productId: item.product_id,
       productName: item.products?.name ?? "Unknown product",
       productSku: item.products?.sku ?? "—",
+      productCategory: item.products?.category ?? "",
       quantity: item.quantity,
       unitPrice: Number(item.unit_price),
       quantityReturned: item.sale_returns.reduce((sum, r) => sum + r.quantity, 0),
