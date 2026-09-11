@@ -187,13 +187,23 @@ export async function getReturnsSummary(window: DateWindow = {}, staffId?: strin
  * value, and which branch/staff member's sale it came from, so it's
  * possible to see exactly what's being subtracted from the gross-looking
  * figures above without having to dig through Stock Movement.
+ *
+ * Staff attribution is admin-only (same sensitivity as getSalesByStaff) --
+ * when isAdmin is false this doesn't just render without a Staff column,
+ * it never fetches or serializes the real names at all, since a Server
+ * Component prop still reaches the client's page payload regardless of
+ * what the UI chooses to display.
  */
 export async function getReturnDetails(
   window: DateWindow = {},
   staffId?: string,
   limit = 100,
+  isAdmin = false,
 ): Promise<ReturnDetail[] | null> {
-  const [rows, staffNames] = await Promise.all([fetchReturnRows(window, staffId), getStaffNameMap()]);
+  const [rows, staffNames] = await Promise.all([
+    fetchReturnRows(window, staffId),
+    isAdmin ? getStaffNameMap() : Promise.resolve<Record<string, string>>({}),
+  ]);
   if (!rows) return null;
 
   return rows
@@ -206,7 +216,11 @@ export async function getReturnDetails(
         quantity: row.quantity,
         value: row.quantity * Number(row.sale_items?.unit_price ?? 0),
         branchName: row.sale_items?.sales?.branches?.name ?? "Unknown branch",
-        staffName: createdBy ? (staffNames[createdBy] ?? "Former staff member") : "Unattributed",
+        staffName: isAdmin
+          ? createdBy
+            ? (staffNames[createdBy] ?? "Former staff member")
+            : "Unattributed"
+          : "",
         date: row.created_at,
       };
     })

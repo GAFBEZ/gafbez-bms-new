@@ -137,7 +137,7 @@ export default async function DailySalesPage({
     getTopProducts(window, 8, staffId ?? undefined),
     getSalesTrend(trendWindow, staffId ?? undefined),
     getReturnsSummary(window, staffId ?? undefined),
-    getReturnDetails(window, staffId ?? undefined),
+    getReturnDetails(window, staffId ?? undefined, 100, isAdmin),
     getBonusRates(),
     getStaffBonusSummary(bonusWindow, bonusStaffId),
   ]);
