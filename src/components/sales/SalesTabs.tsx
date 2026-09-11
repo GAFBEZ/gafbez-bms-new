@@ -155,8 +155,9 @@ export function SalesTabs({
 
       <div id="sales-tracker-panel" role="tabpanel" aria-labelledby={trackerTabId} hidden={activeTab !== "tracker"} className="flex flex-col gap-4">
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Analyse sales trends and branch performance over time
-          {staffName ? `, filtered to ${staffName}` : ""}. Branch comparison here always covers every branch, regardless of the header&apos;s branch filter.
+          {isAdmin
+            ? `Analyse sales trends and branch performance over time${staffName ? `, filtered to ${staffName}` : ""}. Branch comparison here always covers every branch, regardless of the header's branch filter.`
+            : "Analyse your own sales trends and performance over time -- this only includes sales you personally recorded, not other staff members'."}
         </p>
 
         {!dataIsLive && (

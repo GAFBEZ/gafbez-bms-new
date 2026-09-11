@@ -99,10 +99,11 @@ export default async function DailySalesPage({
   const activeBranchId = await getActiveBranchId();
   const user = await getCurrentUser();
   const isAdmin = user?.role === "admin";
-  // Staff slicer is admin-only, matching the existing Sales by Staff/Gross
-  // Profit gating -- a non-admin's ?staff= param (if somehow present) is
-  // simply ignored rather than applied.
-  const staffId = isAdmin && rawStaff ? rawStaff : null;
+  // Admins can slice the tracker to any staff member via ?staff= (or see
+  // everyone, unfiltered). A non-admin can only ever see their own sales
+  // -- always their own id, never the URL, so there's no way to view a
+  // coworker's figures by editing the query string.
+  const staffId = isAdmin ? (rawStaff ?? null) : (user?.id ?? null);
 
   // Staff Bonus is personal to whoever's logged in when they're not an
   // admin -- a non-admin's own user id, never a value from the URL, so
@@ -131,6 +132,11 @@ export default async function DailySalesPage({
     getSales(100, activeBranchId),
     getBranches(),
     isAdmin ? getStaffOptions() : Promise.resolve([]),
+    // Every non-admin call below is scoped by staffId to their own id
+    // (see above), so this data is always personal, never company-wide,
+    // for a non-admin. Sales by Staff (a cross-staff comparison) is the
+    // one exception -- that stays admin-only, fetch included, so a
+    // non-admin's page payload never carries a coworker's figures.
     getSalesSummary(window, staffId ?? undefined),
     getSalesByBranch(window, staffId ?? undefined),
     isAdmin ? getSalesByStaff(window) : Promise.resolve(null),
@@ -151,8 +157,15 @@ export default async function DailySalesPage({
     returnDetails !== null;
   const bonusDataIsLive = bonusRates !== null && bonusSummaries !== null;
   const activeBranchName = branches.find((b) => b.id === activeBranchId)?.name;
-  const hasTrackerParams = Boolean(rawRange || rawFrom || rawTo || rawStaff);
-  const staffName = staffId ? (staffOptions.find((s) => s.id === staffId)?.name ?? "Former staff member") : null;
+  // Cost/margin data is admin-only (same sensitivity as Sales by Staff) --
+  // stripped here, not just hidden by the Gross Profit card's isAdmin
+  // check, so a non-admin's page payload never carries it even unrendered.
+  const safeSummary = summary && !isAdmin ? { ...summary, totalCogs: 0, grossProfit: 0 } : summary;
+  // The staff slicer (?staff=) only applies for an admin explicitly
+  // choosing a coworker to view -- a non-admin's own staffId is never
+  // surfaced as a "filtered to X" label, since that's just them.
+  const hasTrackerParams = Boolean(rawRange || rawFrom || rawTo || (isAdmin && rawStaff));
+  const staffName = isAdmin && staffId ? (staffOptions.find((s) => s.id === staffId)?.name ?? "Former staff member") : null;
   const initialTab = rawTab === "bonus" ? "bonus" : hasTrackerParams ? "tracker" : "daily";
 
   return (
@@ -166,7 +179,7 @@ export default async function DailySalesPage({
         activeBranchName={activeBranchName}
         isAdmin={isAdmin}
         dataIsLive={dataIsLive}
-        summary={summary}
+        summary={safeSummary}
         byBranch={byBranch}
         byStaff={byStaff}
         topProducts={topProducts}
