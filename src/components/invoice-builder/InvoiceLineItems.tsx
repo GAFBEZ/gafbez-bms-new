@@ -177,7 +177,7 @@ export default function InvoiceLineItems({ items, onChange, catalogueOptions, sa
                     onChange={(quantity) => updateItem(item.id, { quantity })}
                     className={fieldClasses}
                   />
-                  <PrintValue className="text-black">{item.quantity || "--"}</PrintValue>
+                  <PrintValue className="text-black">{item.quantity}</PrintValue>
                 </td>
                 <td className="px-3 py-1.5 align-top print:border print:border-brand-green/20 print:px-1.5 print:py-0.5">
                   <NumberInput
@@ -186,7 +186,7 @@ export default function InvoiceLineItems({ items, onChange, catalogueOptions, sa
                     onChange={(unitPrice) => updateItem(item.id, { unitPrice })}
                     className={fieldClasses}
                   />
-                  <PrintValue className="text-black">{item.unitPrice ? formatCurrency(item.unitPrice) : "--"}</PrintValue>
+                  <PrintValue className="text-black">{formatCurrency(item.unitPrice)}</PrintValue>
                 </td>
                 <td className="whitespace-nowrap px-3 py-1.5 align-top font-bold text-brand-green print:border print:border-brand-green/20 print:px-1.5 print:py-0.5">
                   {formatCurrency(computeLineAmount(item))}
