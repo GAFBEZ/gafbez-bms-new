@@ -39,7 +39,8 @@ export function StaffForm({ action, branches, member, isSelf }: StaffFormProps) 
         <p className={labelClasses}>Email</p>
         <p className="text-sm text-gray-500 dark:text-gray-400">{member.email ?? "—"}</p>
         <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-          Email and password are managed in the Supabase Dashboard, not here.
+          Email is managed in the Supabase Dashboard, not here. Need to reset their password? Use the Reset
+          Password section below.
         </p>
       </div>
 

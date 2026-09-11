@@ -3,10 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient, hasServiceRoleConfig } from "@/lib/supabase/service";
 import { getCurrentUser } from "@/lib/auth";
 
 export interface StaffFormState {
   error: string | null;
+}
+
+export interface PasswordResetState {
+  error: string | null;
+  success: boolean;
 }
 
 interface ParsedStaffForm {
@@ -75,4 +81,42 @@ export async function updateStaffMember(
 
   revalidatePath("/dashboard/staff-management");
   redirect("/dashboard/staff-management");
+}
+
+/**
+ * Sets a staff member's password directly via the Auth Admin API, for
+ * when they've lost access to their email and the normal
+ * resetPasswordForEmail() link (see login/actions.ts) can't reach them.
+ * Requires the service-role client -- no regular authenticated client
+ * can call auth.admin.updateUserById.
+ */
+export async function resetStaffPassword(
+  id: string,
+  _prevState: PasswordResetState,
+  formData: FormData,
+): Promise<PasswordResetState> {
+  const currentUser = await getCurrentUser();
+  if (currentUser?.role !== "admin") {
+    return { error: "Admins only. Contact an administrator if you need this change made.", success: false };
+  }
+
+  const newPassword = String(formData.get("newPassword") ?? "");
+  if (newPassword.length < 8) {
+    return { error: "Password must be at least 8 characters.", success: false };
+  }
+
+  if (!hasServiceRoleConfig()) {
+    return {
+      error: "Password reset isn't configured yet -- SUPABASE_SERVICE_ROLE_KEY is missing from this app's environment variables.",
+      success: false,
+    };
+  }
+
+  const serviceClient = createServiceRoleClient();
+  const { error } = await serviceClient.auth.admin.updateUserById(id, { password: newPassword });
+  if (error) {
+    return { error: error.message, success: false };
+  }
+
+  return { error: null, success: true };
 }
