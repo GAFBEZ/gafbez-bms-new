@@ -27,6 +27,11 @@ interface ReturnRow {
   id: string;
   quantity: number;
   created_at: string;
+  /** Who processed this return (record_return()'s auth.uid()) -- distinct
+   * from sale_items.sales.created_by, who made the original sale. Used
+   * only for display attribution in the Returns table; netting still
+   * keys off the original sale's staff/branch (see fetchReturnRows). */
+  created_by: string | null;
   sale_items: {
     product_id: string;
     unit_price: number;
@@ -120,17 +125,21 @@ async function fetchCogs(window: DateWindow, staffId?: string): Promise<number |
 }
 
 /**
- * Every return in the window, attributed to the *original sale's* date and
- * branch/staff (not the return's own) -- a return simply nets against the
- * sale/branch/staff/product it belongs to rather than needing its own
- * separate bucket. Shared by every function below that needs to net
- * returns out of a gross figure, plus the Returns section's own detail
- * list and summary.
+ * Every return in the window. Netting (Total Sales/Gross Profit/By
+ * Branch/By Staff/Top Products) attributes each return to the
+ * *original sale's* date and branch/staff (not the return's own) -- a
+ * return simply nets against the sale/branch/staff/product it belongs
+ * to rather than needing its own separate bucket. The row's own
+ * top-level `created_by` (who actually processed the return) is carried
+ * along separately, for the Returns section's own detail list to show
+ * who handled it -- see getReturnDetails. Shared by every function below
+ * that needs to net returns out of a gross figure, plus the Returns
+ * section's own detail list and summary.
  */
 async function fetchReturnRows(window: DateWindow, staffId?: string): Promise<ReturnRow[] | null> {
   const supabase = await createClient();
   let query = supabase.from("sale_returns").select(
-    `id, quantity, created_at,
+    `id, quantity, created_at, created_by,
      sale_items!inner(product_id, unit_price, unit_cost, products(name, sku),
        sales!inner(branch_id, created_at, created_by, branches(name)))`,
   );
@@ -184,9 +193,11 @@ export async function getReturnsSummary(window: DateWindow = {}, staffId?: strin
 
 /**
  * Every individual return in the window, newest first -- product, quantity,
- * value, and which branch/staff member's sale it came from, so it's
- * possible to see exactly what's being subtracted from the gross-looking
- * figures above without having to dig through Stock Movement.
+ * value, which branch it came from, and which staff member actually
+ * processed the return (sale_returns.created_by -- not necessarily whoever
+ * made the original sale), so it's possible to see exactly who handled it
+ * and what's being subtracted from the gross-looking figures above without
+ * having to dig through Stock Movement.
  *
  * Staff attribution is admin-only (same sensitivity as getSalesByStaff) --
  * when isAdmin is false this doesn't just render without a Staff column,
@@ -208,7 +219,7 @@ export async function getReturnDetails(
 
   return rows
     .map((row) => {
-      const createdBy = row.sale_items?.sales?.created_by ?? null;
+      const returnedBy = row.created_by;
       return {
         id: row.id,
         productName: row.sale_items?.products?.name ?? "Unknown product",
@@ -217,8 +228,8 @@ export async function getReturnDetails(
         value: row.quantity * Number(row.sale_items?.unit_price ?? 0),
         branchName: row.sale_items?.sales?.branches?.name ?? "Unknown branch",
         staffName: isAdmin
-          ? createdBy
-            ? (staffNames[createdBy] ?? "Former staff member")
+          ? returnedBy
+            ? (staffNames[returnedBy] ?? "Former staff member")
             : "Unattributed"
           : "",
         date: row.created_at,
