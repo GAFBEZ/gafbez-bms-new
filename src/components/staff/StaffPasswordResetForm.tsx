@@ -91,7 +91,7 @@ export function StaffPasswordResetForm({ action, memberLabel }: StaffPasswordRes
           <button
             type="submit"
             disabled={isPending || password.length < 8}
-            className="rounded-lg border border-brand-green px-4 py-2.5 text-sm font-semibold text-brand-green transition-colors hover:bg-brand-green/10 focus:outline-none focus:ring-2 focus:ring-brand-green/40 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-lg bg-brand-green px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-green-dark focus:outline-none focus:ring-2 focus:ring-brand-green/40 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isPending ? "Resetting…" : "Reset Password"}
           </button>
