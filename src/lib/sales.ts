@@ -38,13 +38,17 @@ const SELECT_WITH_JOINS =
 
 /**
  * Returns null if the query fails (e.g. migration not run yet). Pass
- * branchId ("all" or omitted means unfiltered) to scope to one branch, and/or
- * customerId to scope to one customer's purchase history (Customer Detail).
+ * branchId ("all" or omitted means unfiltered) to scope to one branch,
+ * customerId to scope to one customer's purchase history (Customer
+ * Detail), and/or staffId to scope to one staff member's own recorded
+ * sales (the Dashboard passes the logged-in user's id for non-admins,
+ * same policy as the Sales Tracker).
  */
 export async function getSales(
   limit = 100,
   branchId?: string,
   customerId?: string,
+  staffId?: string,
 ): Promise<Sale[] | null> {
   const supabase = await createClient();
   let query = supabase
@@ -59,6 +63,10 @@ export async function getSales(
 
   if (customerId) {
     query = query.eq("customer_id", customerId);
+  }
+
+  if (staffId) {
+    query = query.eq("created_by", staffId);
   }
 
   const [{ data, error }, staffNames] = await Promise.all([query, getStaffNameMap()]);

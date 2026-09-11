@@ -50,6 +50,16 @@ const ADMIN_ONLY_METRIC_KEYS = new Set<DashboardMetricKey>([
 ]);
 
 export default async function DashboardPage() {
+  const user = await getCurrentUser();
+  const isAdmin = user?.role === "admin";
+  // Today's Sales/Sales by Branch/Recent Sales are scoped to the
+  // logged-in staff member's own sales for non-admins -- same policy as
+  // the Sales Tracker (see daily-sales/page.tsx): a staff member only
+  // ever sees what they personally sold, never company-wide totals or
+  // other staff members' figures. Admins keep the unfiltered, all-branch
+  // view.
+  const staffId = isAdmin ? undefined : (user?.id ?? undefined);
+
   const [
     live,
     liveStockMovements,
@@ -59,19 +69,16 @@ export default async function DashboardPage() {
     liveBranchSales,
     liveNetProfit,
     liveNotifications,
-    user,
   ] = await Promise.all([
     getLiveInventoryDashboardData(),
     getStockMovements(4),
     getLiveOutstandingBalance(),
-    getLiveTodaySales(),
-    getSales(4),
-    getSalesByBranch(),
+    getLiveTodaySales(staffId),
+    getSales(4, undefined, undefined, staffId),
+    getSalesByBranch(undefined, staffId),
     getLiveNetProfit(),
     getNotifications(5),
-    getCurrentUser(),
   ]);
-  const isAdmin = user?.role === "admin";
 
   const liveMetrics: Partial<Record<DashboardMetricKey, number>> = {
     ...live?.metrics,
@@ -176,7 +183,11 @@ export default async function DashboardPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Dashboard"
-        description="Overview of business performance across all branches."
+        description={
+          isAdmin
+            ? "Overview of business performance across all branches."
+            : "Overview of your own sales and recent stock activity."
+        }
       />
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">

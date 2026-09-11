@@ -75,18 +75,25 @@ export async function getLiveOutstandingBalance(): Promise<number | null> {
 }
 
 /**
- * Sum of sales.total_amount for sales created since local midnight. Returns
+ * Sum of sales.total_amount for sales created since local midnight. Pass
+ * staffId to scope this to one staff member's own sales (the Dashboard
+ * passes the logged-in user's id for non-admins, same policy as the Sales
+ * Tracker -- a staff member never sees company-wide revenue here). Returns
  * null if the query fails so the caller can fall back to demo data.
  */
-export async function getLiveTodaySales(): Promise<number | null> {
+export async function getLiveTodaySales(staffId?: string): Promise<number | null> {
   const supabase = await createClient();
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("sales")
     .select("total_amount")
     .gte("created_at", startOfDay.toISOString());
+
+  if (staffId) query = query.eq("created_by", staffId);
+
+  const { data, error } = await query;
 
   if (error || !data) {
     console.warn("Falling back to demo today's sales:", error?.message);
