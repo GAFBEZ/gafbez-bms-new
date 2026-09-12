@@ -60,8 +60,24 @@ async function compressImage(file: File, maxBytes: number): Promise<File> {
   return new File([blob], withExtension(file.name, outputType), { type: outputType });
 }
 
+/** iPhones save photos as HEIC by default -- browsers can't decode or
+ * display it, so it's rejected like any other unsupported type, but with
+ * a message that actually explains why and how to fix it, since this is
+ * by far the most common way a photo ends up here in an unsupported
+ * format. file.type is unreliable for HEIC across browsers/OSes (often
+ * blank), so the filename extension is checked too. */
+function isHeic(file: File): boolean {
+  return file.type === "image/heic" || file.type === "image/heif" || /\.hei[cf]$/i.test(file.name);
+}
+
 export async function prepareImageFile(file: File): Promise<{ file: File } | { error: string }> {
   if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    if (isHeic(file)) {
+      return {
+        error:
+          "This looks like an iPhone HEIC photo, which browsers can't use directly. Convert it to JPEG first -- in Photos, use File > Export > JPEG (or turn on Settings > Camera > Formats > Most Compatible on the iPhone so new photos save as JPEG automatically) -- then try again.",
+      };
+    }
     return { error: "Images must be JPEG, PNG, or WebP." };
   }
   if (file.size <= MAX_IMAGE_BYTES) {

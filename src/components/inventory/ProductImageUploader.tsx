@@ -12,7 +12,12 @@ import {
   saveProductMainImageUrl,
 } from "@/app/dashboard/inventory/actions";
 
-const ACCEPT = "image/jpeg,image/png,image/webp";
+// Includes HEIC/HEIF (plus their file extensions, since some OS pickers
+// go by extension rather than MIME type) purely so the OS file picker
+// doesn't silently refuse to let an iPhone photo be selected at all --
+// prepareImageFile() rejects it afterward with a message explaining why
+// and how to convert it, rather than the browser just blocking the pick.
+const ACCEPT = "image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif";
 const PRODUCT_IMAGES_BUCKET = "product-images";
 
 // Uploaded straight from the browser to Supabase Storage rather than
@@ -110,7 +115,6 @@ export function MainImageUploader({ productId, imageUrl }: MainImageUploaderProp
               name="mainImage"
               type="file"
               accept={ACCEPT}
-              required
               className="text-xs text-gray-600 file:mr-2 file:rounded-md file:border-0 file:bg-brand-green-soft file:px-2.5 file:py-1.5 file:text-xs file:font-medium file:text-brand-green dark:text-gray-400 dark:file:text-emerald-400"
             />
             <button
@@ -253,7 +257,6 @@ export function GalleryUploader({ productId, imageUrls }: GalleryUploaderProps) 
           type="file"
           accept={ACCEPT}
           multiple
-          required
           className="text-xs text-gray-600 file:mr-2 file:rounded-md file:border-0 file:bg-brand-green-soft file:px-2.5 file:py-1.5 file:text-xs file:font-medium file:text-brand-green dark:text-gray-400 dark:file:text-emerald-400"
         />
         <button

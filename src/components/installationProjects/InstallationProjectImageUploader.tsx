@@ -13,7 +13,10 @@ import {
   saveInstallationMainImageUrl,
 } from "@/app/dashboard/installation-projects/actions";
 
-const ACCEPT = "image/jpeg,image/png,image/webp";
+// Includes HEIC/HEIF so the OS file picker doesn't silently refuse to
+// let an iPhone photo be selected at all -- prepareImageFile() rejects
+// it afterward with a message explaining why and how to convert it.
+const ACCEPT = "image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif";
 const MAX_GALLERY_FILES_PER_UPLOAD = 10;
 const INSTALLATION_IMAGES_BUCKET = "installation-images";
 
@@ -103,7 +106,6 @@ export function InstallationMainImageUploader({ projectId, imageUrl }: MainImage
               name="mainImage"
               type="file"
               accept={ACCEPT}
-              required
               className="text-xs text-gray-600 file:mr-2 file:rounded-md file:border-0 file:bg-brand-green-soft file:px-2.5 file:py-1.5 file:text-xs file:font-medium file:text-brand-green dark:text-gray-400 dark:file:text-emerald-400"
             />
             <button
@@ -258,7 +260,6 @@ export function InstallationGalleryUploader({ projectId, imageUrls }: GalleryUpl
           type="file"
           accept={ACCEPT}
           multiple
-          required
           className="text-xs text-gray-600 file:mr-2 file:rounded-md file:border-0 file:bg-brand-green-soft file:px-2.5 file:py-1.5 file:text-xs file:font-medium file:text-brand-green dark:text-gray-400 dark:file:text-emerald-400"
         />
         <button
