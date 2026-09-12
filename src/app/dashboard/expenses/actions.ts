@@ -47,6 +47,16 @@ export async function createExpense(
     };
   }
 
+  // Branch-locked for non-admins, same policy as record_sale/
+  // record_stock_movement/record_return -- a staff member with an
+  // assigned branch can only record an expense at that branch, not one
+  // they pick from the dropdown. Backed up by RLS (0071) in case this
+  // action is ever bypassed.
+  const user = await getCurrentUser();
+  if (user?.role !== "admin" && user?.branchId && user.branchId !== parsed.branchId) {
+    return { error: "You can only record expenses at your assigned branch." };
+  }
+
   const supabase = await createClient();
   const { error } = await supabase.from("expenses").insert({
     branch_id: parsed.branchId,
@@ -77,7 +87,23 @@ export async function updateExpense(
     };
   }
 
+  const user = await getCurrentUser();
   const supabase = await createClient();
+
+  // Same branch-lock as createExpense, checked against both the
+  // submitted branch AND the expense's current branch -- a staff member
+  // can't reassign an expense to their branch from elsewhere, or edit
+  // one that isn't at their branch to begin with.
+  if (user?.role !== "admin" && user?.branchId) {
+    if (parsed.branchId !== user.branchId) {
+      return { error: "You can only record expenses at your assigned branch." };
+    }
+    const { data: existing } = await supabase.from("expenses").select("branch_id").eq("id", id).maybeSingle();
+    if (existing && existing.branch_id !== user.branchId) {
+      return { error: "You can only edit expenses recorded at your assigned branch." };
+    }
+  }
+
   const { error } = await supabase
     .from("expenses")
     .update({

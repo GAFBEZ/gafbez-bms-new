@@ -14,6 +14,11 @@ interface CustomerFormProps {
   branches: Branch[];
   initialValues?: Customer;
   submitLabel: string;
+  /** Outstanding balance is admin-only (see customers/actions.ts) -- a
+   * non-admin's submitted value is ignored server-side regardless, but
+   * disabling the field here avoids the confusing experience of typing
+   * a new balance, saving, and seeing it silently not take effect. */
+  isAdmin: boolean;
 }
 
 const initialState: CustomerFormState = { error: null };
@@ -27,6 +32,7 @@ export function CustomerForm({
   branches,
   initialValues,
   submitLabel,
+  isAdmin,
 }: CustomerFormProps) {
   const [state, formAction, isPending] = useActionState(action, initialState);
 
@@ -129,10 +135,13 @@ export function CustomerForm({
             min="0"
             step="0.01"
             defaultValue={initialValues?.outstandingBalance ?? 0}
-            className={inputClasses}
+            disabled={!isAdmin}
+            className={`${inputClasses} disabled:cursor-not-allowed disabled:opacity-60`}
           />
           <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-            Tracked manually for now — this will become computed once invoicing exists.
+            {isAdmin
+              ? "Tracked manually for now — this will become computed once invoicing exists."
+              : "Admins only -- it should normally only change via an actual sale or return."}
           </p>
         </div>
       </div>

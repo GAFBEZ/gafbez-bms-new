@@ -53,6 +53,14 @@ export async function createCustomer(
     };
   }
 
+  // Outstanding balance is admin-only -- it should normally only move
+  // via an actual sale/return, not a manually-typed number. A non-admin
+  // creating a customer always starts them at 0, regardless of what was
+  // submitted. Backed up by a DB trigger (0071) in case this action is
+  // ever bypassed.
+  const user = await getCurrentUser();
+  const outstandingBalance = user?.role === "admin" ? parsed.outstandingBalance : 0;
+
   const supabase = await createClient();
   const { error } = await supabase.from("customers").insert({
     name: parsed.name,
@@ -60,7 +68,7 @@ export async function createCustomer(
     email: parsed.email,
     address: parsed.address,
     branch_id: parsed.branchId,
-    outstanding_balance: parsed.outstandingBalance,
+    outstanding_balance: outstandingBalance,
     notes: parsed.notes,
   });
 
@@ -85,7 +93,19 @@ export async function updateCustomer(
     };
   }
 
+  const user = await getCurrentUser();
   const supabase = await createClient();
+
+  // Outstanding balance is admin-only (see createCustomer) -- a
+  // non-admin's edit keeps whatever the balance already was, regardless
+  // of what the form submitted, rather than letting them silently change
+  // it via an update. Backed up by a DB trigger (0071).
+  let outstandingBalance = parsed.outstandingBalance;
+  if (user?.role !== "admin") {
+    const { data: existing } = await supabase.from("customers").select("outstanding_balance").eq("id", id).maybeSingle();
+    outstandingBalance = existing ? Number(existing.outstanding_balance) : parsed.outstandingBalance;
+  }
+
   const { error } = await supabase
     .from("customers")
     .update({
@@ -94,7 +114,7 @@ export async function updateCustomer(
       email: parsed.email,
       address: parsed.address,
       branch_id: parsed.branchId,
-      outstanding_balance: parsed.outstandingBalance,
+      outstanding_balance: outstandingBalance,
       notes: parsed.notes,
     })
     .eq("id", id);

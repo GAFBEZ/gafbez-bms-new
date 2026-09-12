@@ -30,7 +30,7 @@ export default async function AccountPage() {
         </h2>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Requires your current password. If you&apos;ve forgotten it, ask an
-          administrator to reset it from the Supabase Dashboard.
+          administrator to reset it for you from Staff Management.
         </p>
         <div className="mt-4">
           <ChangePasswordForm />

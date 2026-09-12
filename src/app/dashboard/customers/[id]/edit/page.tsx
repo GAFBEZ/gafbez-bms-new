@@ -4,6 +4,7 @@ import { CustomerForm } from "@/components/customers/CustomerForm";
 import { updateCustomer } from "@/app/dashboard/customers/actions";
 import { getCustomer } from "@/lib/customers";
 import { getBranches } from "@/lib/branches";
+import { getCurrentUser } from "@/lib/auth";
 
 export default async function EditCustomerPage({
   params,
@@ -11,7 +12,7 @@ export default async function EditCustomerPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [customer, branches] = await Promise.all([getCustomer(id), getBranches()]);
+  const [customer, branches, user] = await Promise.all([getCustomer(id), getBranches(), getCurrentUser()]);
 
   if (!customer) notFound();
 
@@ -31,6 +32,7 @@ export default async function EditCustomerPage({
         branches={operationalBranches}
         initialValues={customer}
         submitLabel="Save Changes"
+        isAdmin={user?.role === "admin"}
       />
     </div>
   );
