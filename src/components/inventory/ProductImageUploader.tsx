@@ -61,14 +61,17 @@ export function MainImageUploader({ productId, imageUrl }: MainImageUploaderProp
       const readyFile = prepared.file;
 
       const supabase = createClient();
-      // Fixed path per product (upsert), same technique as the branding
-      // logo (0020_logo_upload.sql) -- replacing the main image never
-      // leaves an orphaned old file behind under a different extension.
-      const path = `${productId}/main.${extensionFor(readyFile.type)}`;
+      // A unique path per upload, not a fixed name with upsert:true --
+      // getPublicUrl() returns the exact same URL for a fixed path every
+      // time, and neither the CDN nor the browser varies its cache by
+      // anything else, so replacing the image at a fixed path kept
+      // serving the old cached bytes at that URL (same bug as the
+      // installer logo upload, fixed the same way there).
+      const path = `${productId}/main-${Date.now()}.${extensionFor(readyFile.type)}`;
 
       const { error: uploadError } = await supabase.storage
         .from(PRODUCT_IMAGES_BUCKET)
-        .upload(path, readyFile, { upsert: true, contentType: readyFile.type });
+        .upload(path, readyFile, { contentType: readyFile.type });
 
       if (uploadError) {
         setError(uploadError.message);
@@ -81,6 +84,22 @@ export function MainImageUploader({ productId, imageUrl }: MainImageUploaderProp
       if (result.error) {
         setError(result.error);
         return;
+      }
+
+      // Best-effort cleanup of the previous main image object(s), now
+      // that the path is unique per upload instead of a single
+      // overwritten name -- doesn't fail the upload itself if this fails.
+      try {
+        const newFileName = path.split("/").pop();
+        const { data: existing } = await supabase.storage.from(PRODUCT_IMAGES_BUCKET).list(productId);
+        const stalePaths = (existing ?? [])
+          .filter((entry) => entry.name.startsWith("main") && entry.name !== newFileName)
+          .map((entry) => `${productId}/${entry.name}`);
+        if (stalePaths.length > 0) {
+          await supabase.storage.from(PRODUCT_IMAGES_BUCKET).remove(stalePaths);
+        }
+      } catch {
+        // Cleanup is best-effort -- the upload above already succeeded.
       }
 
       formRef.current?.reset();

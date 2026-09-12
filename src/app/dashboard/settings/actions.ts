@@ -110,9 +110,15 @@ export async function updateQuoteBranding(
   return { error: null, success: true };
 }
 
-const LOGO_PATH = "logo/current";
 const ALLOWED_LOGO_TYPES = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
 const MAX_LOGO_BYTES = 2 * 1024 * 1024;
+
+function extensionForLogo(mimeType: string): string {
+  if (mimeType === "image/png") return "png";
+  if (mimeType === "image/webp") return "webp";
+  if (mimeType === "image/svg+xml") return "svg";
+  return "jpg";
+}
 
 export async function updateLogo(
   _prevState: SettingsFormState,
@@ -132,11 +138,17 @@ export async function updateLogo(
 
   const supabase = await createClient();
 
-  // Always the same path (upsert), so replacing the logo never leaves an
-  // orphaned old file behind under a different name/extension.
+  // A unique path per upload, not a fixed name with upsert:true --
+  // getPublicUrl() returns the exact same URL for a fixed path every
+  // time, and neither the CDN nor the browser varies its cache by
+  // anything else, so replacing the logo at a fixed path kept serving
+  // the old cached bytes at that URL (same bug fixed the same way for
+  // the installer logo, product images, and installation project photos).
+  const path = `logo/current-${Date.now()}.${extensionForLogo(file.type)}`;
+
   const { error: uploadError } = await supabase.storage
     .from("branding")
-    .upload(LOGO_PATH, file, { upsert: true, contentType: file.type });
+    .upload(path, file, { contentType: file.type });
 
   if (uploadError) {
     return { error: uploadError.message };
@@ -144,11 +156,26 @@ export async function updateLogo(
 
   const { error: settingsError } = await supabase
     .from("app_settings")
-    .update({ logo_path: LOGO_PATH })
+    .update({ logo_path: path })
     .eq("id", true);
 
   if (settingsError) {
     return { error: settingsError.message };
+  }
+
+  // Best-effort cleanup of the previous logo file(s), now that the path
+  // is unique per upload instead of a single overwritten name.
+  try {
+    const newFileName = path.split("/").pop();
+    const { data: existing } = await supabase.storage.from("branding").list("logo");
+    const stalePaths = (existing ?? [])
+      .filter((entry) => entry.name !== newFileName)
+      .map((entry) => `logo/${entry.name}`);
+    if (stalePaths.length > 0) {
+      await supabase.storage.from("branding").remove(stalePaths);
+    }
+  } catch {
+    // Cleanup is best-effort -- the upload above already succeeded.
   }
 
   revalidatePath("/dashboard/settings");
@@ -159,7 +186,11 @@ export async function updateLogo(
 
 export async function removeLogo(): Promise<void> {
   const supabase = await createClient();
-  await supabase.storage.from("branding").remove([LOGO_PATH]);
+  const { data: current } = await supabase.from("app_settings").select("logo_path").eq("id", true).maybeSingle();
+
+  if (current?.logo_path) {
+    await supabase.storage.from("branding").remove([current.logo_path]);
+  }
   await supabase.from("app_settings").update({ logo_path: null }).eq("id", true);
 
   revalidatePath("/dashboard/settings");

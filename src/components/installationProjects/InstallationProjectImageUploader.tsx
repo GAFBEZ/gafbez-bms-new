@@ -61,11 +61,17 @@ export function InstallationMainImageUploader({ projectId, imageUrl }: MainImage
       const readyFile = prepared.file;
 
       const supabase = createClient();
-      const path = `${projectId}/main.${extensionFor(readyFile.type)}`;
+      // A unique path per upload, not a fixed name with upsert:true --
+      // getPublicUrl() returns the exact same URL for a fixed path every
+      // time, and neither the CDN nor the browser varies its cache by
+      // anything else, so replacing the image at a fixed path kept
+      // serving the old cached bytes at that URL (same bug as the
+      // installer logo upload, fixed the same way there).
+      const path = `${projectId}/main-${Date.now()}.${extensionFor(readyFile.type)}`;
 
       const { error: uploadError } = await supabase.storage
         .from(INSTALLATION_IMAGES_BUCKET)
-        .upload(path, readyFile, { upsert: true, contentType: readyFile.type });
+        .upload(path, readyFile, { contentType: readyFile.type });
 
       if (uploadError) {
         setError(uploadError.message);
@@ -78,6 +84,22 @@ export function InstallationMainImageUploader({ projectId, imageUrl }: MainImage
       if (result.error) {
         setError(result.error);
         return;
+      }
+
+      // Best-effort cleanup of the previous main image object(s), now
+      // that the path is unique per upload instead of a single
+      // overwritten name -- doesn't fail the upload itself if this fails.
+      try {
+        const newFileName = path.split("/").pop();
+        const { data: existing } = await supabase.storage.from(INSTALLATION_IMAGES_BUCKET).list(projectId);
+        const stalePaths = (existing ?? [])
+          .filter((entry) => entry.name.startsWith("main") && entry.name !== newFileName)
+          .map((entry) => `${projectId}/${entry.name}`);
+        if (stalePaths.length > 0) {
+          await supabase.storage.from(INSTALLATION_IMAGES_BUCKET).remove(stalePaths);
+        }
+      } catch {
+        // Cleanup is best-effort -- the upload above already succeeded.
       }
 
       formRef.current?.reset();
